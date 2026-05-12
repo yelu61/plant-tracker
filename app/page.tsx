@@ -1,8 +1,9 @@
 import { desc, sql } from "drizzle-orm";
-import { ArrowRight, Droplet, Leaf, Package, Sprout } from "lucide-react";
+import { ArrowRight, Droplet, Leaf, Package, Settings, Sprout } from "lucide-react";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
+import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { careEvents, plants, supplies } from "@/lib/db/schema";
@@ -53,7 +54,16 @@ export default async function HomePage() {
 
   return (
     <>
-      <TopBar title="今天" />
+      <TopBar
+        title="今天"
+        action={
+          <Link href="/settings" aria-label="设置">
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+            </Button>
+          </Link>
+        }
+      />
       <div className="space-y-6 px-4 py-4">
         <section className="grid grid-cols-3 gap-3">
           <StatTile
