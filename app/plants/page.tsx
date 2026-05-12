@@ -8,7 +8,7 @@ import { Badge, EmptyState } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { plants } from "@/lib/db/schema";
-import { relativeTime } from "@/lib/utils";
+import { cn, waterStatus } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,11 @@ export default async function PlantsPage() {
   const rows = await db.query.plants.findMany({
     with: {
       species: true,
-      events: { orderBy: (e, { desc }) => desc(e.occurredAt), limit: 1 },
+      events: {
+        where: (e, { eq }) => eq(e.type, "water"),
+        orderBy: (e, { desc }) => desc(e.occurredAt),
+        limit: 1,
+      },
     },
     orderBy: desc(plants.createdAt),
   });
@@ -49,7 +53,8 @@ export default async function PlantsPage() {
         ) : (
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {rows.map((p) => {
-              const last = p.events[0];
+              const lastWater = p.events[0];
+              const w = waterStatus(lastWater?.occurredAt, p.wateringIntervalDays);
               return (
                 <li key={p.id}>
                   <Link href={`/plants/${p.id}`} className="block">
@@ -68,10 +73,20 @@ export default async function PlantsPage() {
                           </Badge>
                         ) : null}
                       </div>
-                      <div className="mt-3 text-xs text-stone-500">
-                        {last
-                          ? `最近 ${last.type === "water" ? "浇水" : last.type} · ${relativeTime(last.occurredAt)}`
-                          : "尚未打卡"}
+                      <div className="mt-3">
+                        <Badge
+                          className={cn(
+                            w.days == null
+                              ? "bg-amber-100 text-amber-700"
+                              : w.overdue
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-sky-100 text-sky-700",
+                          )}
+                        >
+                          {w.days == null
+                            ? "💧 还没浇过"
+                            : `💧 ${w.days} 天前${w.overdue ? " · 该浇了" : ""}`}
+                        </Badge>
                       </div>
                     </Card>
                   </Link>

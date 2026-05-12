@@ -31,6 +31,7 @@ export const plantSchema = z.object({
   acquiredAt: optionalDate,
   acquiredFrom: z.string().max(80).optional().or(z.literal("")).transform((v) => v || undefined),
   acquiredPrice: optionalNumber,
+  wateringIntervalDays: optionalNumber,
   status: z.enum(["alive", "dormant", "lost", "archived"]).default("alive"),
   notes: z.string().max(2000).optional().or(z.literal("")).transform((v) => v || undefined),
 });

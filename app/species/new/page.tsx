@@ -7,14 +7,27 @@ import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 
 import { createSpecies } from "@/app/actions/species";
 
-export default function NewSpeciesPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewSpeciesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ name?: string }>;
+}) {
+  const { name } = await searchParams;
   return (
     <>
       <TopBar title="新增物种" />
       <form action={createSpecies} className="space-y-4 px-4 py-4">
         <Card className="space-y-4">
           <FieldGroup label="俗名 *">
-            <Input name="commonName" required placeholder="绿萝" autoFocus />
+            <Input
+              name="commonName"
+              required
+              placeholder="绿萝"
+              defaultValue={name ?? ""}
+              autoFocus
+            />
           </FieldGroup>
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="学名">
@@ -34,7 +47,7 @@ export default function NewSpeciesPage() {
           <FieldGroup label="光照">
             <Input name="careLight" placeholder="散光 / 全日照 / 耐阴" />
           </FieldGroup>
-          <FieldGroup label="浇水">
+          <FieldGroup label="浇水" hint="文案里带「X 天」或「X-Y 天」会被自动识别为推荐浇水间隔">
             <Input name="careWater" placeholder="干透浇透，约 5-10 天 / 次" />
           </FieldGroup>
           <div className="grid grid-cols-2 gap-3">

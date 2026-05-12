@@ -20,6 +20,7 @@ export async function createPlant(formData: FormData) {
       ...parsed,
       speciesId: parsed.speciesId ?? null,
       acquiredPrice: parsed.acquiredPrice ?? null,
+      wateringIntervalDays: parsed.wateringIntervalDays ?? null,
     })
     .returning({ id: plants.id });
   revalidatePath("/plants");
@@ -35,6 +36,7 @@ export async function updatePlant(id: number, formData: FormData) {
       ...parsed,
       speciesId: parsed.speciesId ?? null,
       acquiredPrice: parsed.acquiredPrice ?? null,
+      wateringIntervalDays: parsed.wateringIntervalDays ?? null,
     })
     .where(eq(plants.id, id));
   revalidatePath("/plants");

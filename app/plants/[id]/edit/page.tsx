@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { TopBar } from "@/components/bottom-nav";
+import { SpeciesPicker } from "@/components/species-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
@@ -42,16 +43,11 @@ export default async function EditPlantPage({
           <FieldGroup label="昵称 *">
             <Input name="name" required defaultValue={plant.name} />
           </FieldGroup>
-          <FieldGroup label="物种">
-            <Select name="speciesId" defaultValue={plant.speciesId?.toString() ?? ""}>
-              <option value="">未指定</option>
-              {speciesList.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.commonName}
-                </option>
-              ))}
-            </Select>
-          </FieldGroup>
+          <SpeciesPicker
+            species={speciesList}
+            defaultSpeciesId={plant.speciesId ?? null}
+            defaultIntervalDays={plant.wateringIntervalDays ?? null}
+          />
           <FieldGroup label="状态">
             <Select name="status" defaultValue={plant.status}>
               <option value="alive">在养</option>

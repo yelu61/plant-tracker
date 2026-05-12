@@ -2,9 +2,11 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db";
-import { careEvents } from "@/lib/db/schema";
+import { careEvents, photos } from "@/lib/db/schema";
+import { saveFile } from "@/lib/storage";
 import { careEventSchema } from "@/lib/validations";
 
 export async function logEvent(formData: FormData) {
@@ -31,8 +33,53 @@ export async function quickLog(plantId: number, type: string) {
   revalidatePath("/quick-log");
 }
 
+export async function logGrowth(plantId: number, formData: FormData) {
+  const heightCm = numOrNull(formData.get("heightCm"));
+  const leafCount = numOrNull(formData.get("leafCount"));
+  const detail = (formData.get("detail") as string | null) || null;
+  const occurredAtRaw = formData.get("occurredAt") as string | null;
+  const occurredAt = occurredAtRaw ? new Date(occurredAtRaw) : new Date();
+
+  const photoFile = formData.get("photo") as File | null;
+  let photoUrl: string | undefined;
+  if (photoFile && photoFile.size > 0) {
+    const saved = await saveFile(photoFile);
+    photoUrl = saved.url;
+  }
+
+  const [event] = await db
+    .insert(careEvents)
+    .values({
+      plantId,
+      type: "growth",
+      occurredAt,
+      detail,
+      metadata: { heightCm, leafCount, photoUrl },
+    })
+    .returning({ id: careEvents.id });
+
+  if (photoUrl) {
+    await db.insert(photos).values({
+      plantId,
+      eventId: event.id,
+      url: photoUrl,
+      caption: detail,
+      takenAt: occurredAt,
+    });
+  }
+
+  revalidatePath(`/plants/${plantId}`);
+  redirect(`/plants/${plantId}`);
+}
+
 export async function deleteEvent(id: number, plantId: number) {
   await db.delete(careEvents).where(eq(careEvents.id, id));
   revalidatePath("/");
   revalidatePath(`/plants/${plantId}`);
+}
+
+function numOrNull(v: FormDataEntryValue | null): number | null {
+  if (v == null || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 }

@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
+import { SpeciesPicker } from "@/components/species-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
+import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
 
 import { createPlant } from "@/app/actions/plants";
@@ -24,17 +25,7 @@ export default async function NewPlantPage() {
             <Input name="name" required placeholder="比如：阳台绿萝 #1" autoFocus />
           </FieldGroup>
 
-          <FieldGroup label="物种">
-            <Select name="speciesId" defaultValue="">
-              <option value="">未指定</option>
-              {speciesList.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.commonName}
-                  {s.scientificName ? ` (${s.scientificName})` : ""}
-                </option>
-              ))}
-            </Select>
-          </FieldGroup>
+          <SpeciesPicker species={speciesList} />
 
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="位置">

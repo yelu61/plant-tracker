@@ -30,6 +30,7 @@ export const plants = sqliteTable("plants", {
   acquiredAt: integer("acquired_at", { mode: "timestamp" }),
   acquiredFrom: text("acquired_from"),
   acquiredPrice: real("acquired_price"),
+  wateringIntervalDays: integer("watering_interval_days"),
   status: text("status", { enum: ["alive", "dormant", "lost", "archived"] })
     .notNull()
     .default("alive"),
@@ -46,6 +47,7 @@ export const careEventTypes = [
   "observe",
   "rotate",
   "move",
+  "growth",
 ] as const;
 export type CareEventType = (typeof careEventTypes)[number];
 

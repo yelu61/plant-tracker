@@ -37,3 +37,34 @@ export function formatMoney(n: number | null | undefined) {
     maximumFractionDigits: 2,
   }).format(n);
 }
+
+const DEFAULT_WATER_INTERVAL_DAYS = 7;
+
+export function daysSince(date: Date | number | null | undefined): number | null {
+  if (!date) return null;
+  const d = typeof date === "number" ? new Date(date * 1000) : date;
+  const ms = Date.now() - d.getTime();
+  return Math.floor(ms / 86400000);
+}
+
+export function waterStatus(
+  lastWaterAt: Date | number | null | undefined,
+  intervalDays: number | null | undefined,
+): {
+  days: number | null;
+  overdue: boolean;
+  dueIn: number | null;
+  interval: number;
+} {
+  const interval = intervalDays ?? DEFAULT_WATER_INTERVAL_DAYS;
+  const days = daysSince(lastWaterAt);
+  if (days == null) {
+    return { days: null, overdue: true, dueIn: null, interval };
+  }
+  return {
+    days,
+    overdue: days >= interval,
+    dueIn: interval - days,
+    interval,
+  };
+}

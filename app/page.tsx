@@ -1,5 +1,5 @@
 import { desc, sql } from "drizzle-orm";
-import { ArrowRight, Leaf, Package, Sprout } from "lucide-react";
+import { ArrowRight, Droplet, Leaf, Package, Sprout } from "lucide-react";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
@@ -7,7 +7,9 @@ import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { careEvents, plants, supplies } from "@/lib/db/schema";
 import { CARE_EVENT_META } from "@/lib/constants";
-import { formatMoney, relativeTime } from "@/lib/utils";
+import { formatMoney, relativeTime, waterStatus } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [plantCount] = await db
@@ -30,6 +32,24 @@ export default async function HomePage() {
     orderBy: desc(careEvents.occurredAt),
     limit: 8,
   });
+
+  const aliveWithWater = await db.query.plants.findMany({
+    where: (p, { eq }) => eq(p.status, "alive"),
+    with: {
+      events: {
+        where: (e, { eq }) => eq(e.type, "water"),
+        orderBy: (e, { desc }) => desc(e.occurredAt),
+        limit: 1,
+      },
+    },
+  });
+  const overdue = aliveWithWater
+    .map((p) => ({
+      plant: p,
+      water: waterStatus(p.events[0]?.occurredAt, p.wateringIntervalDays),
+    }))
+    .filter((x) => x.water.overdue)
+    .sort((a, b) => (b.water.days ?? 999) - (a.water.days ?? 999));
 
   return (
     <>
@@ -54,6 +74,35 @@ export default async function HomePage() {
             href="/supplies"
           />
         </section>
+
+        {overdue.length > 0 ? (
+          <section>
+            <SectionHead title={`需浇水 (${overdue.length})`} href="/quick-log" linkLabel="去打卡" />
+            <ul className="space-y-2">
+              {overdue.map(({ plant, water }) => (
+                <li key={plant.id}>
+                  <Link
+                    href={`/plants/${plant.id}`}
+                    className="flex items-center justify-between rounded-2xl bg-amber-50 px-4 py-3 shadow-sm ring-1 ring-amber-200 dark:bg-amber-950/30 dark:ring-amber-900"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Droplet className="h-5 w-5 text-amber-600" />
+                      <div>
+                        <p className="text-sm font-medium">{plant.name}</p>
+                        <p className="text-xs text-amber-700 dark:text-amber-400">
+                          {water.days == null
+                            ? "还没浇过"
+                            : `已 ${water.days} 天没浇 · 建议每 ${water.interval} 天`}
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-amber-500" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <section>
           <SectionHead title="最近活动" href="/quick-log" linkLabel="打卡" />

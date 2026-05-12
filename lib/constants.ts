@@ -10,6 +10,7 @@ export const CARE_EVENT_META: Record<
   observe: { label: "观察", emoji: "👀", tone: "bg-slate-100 text-slate-700" },
   rotate: { label: "转盆", emoji: "🔄", tone: "bg-indigo-100 text-indigo-700" },
   move: { label: "搬位", emoji: "📦", tone: "bg-stone-100 text-stone-700" },
+  growth: { label: "成长", emoji: "📈", tone: "bg-leaf-100 text-leaf-700" },
 };
 
 export const SUPPLY_CATEGORY_META: Record<string, { label: string; emoji: string }> = {
