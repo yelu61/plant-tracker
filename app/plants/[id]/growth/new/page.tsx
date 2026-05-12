@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { TopBar } from "@/components/bottom-nav";
-import { CompressedFileInput } from "@/components/compressed-file-input";
+import { MultiPhotoInput } from "@/components/multi-photo-input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
@@ -35,8 +35,8 @@ export default async function NewGrowthPage({
         className="space-y-4 px-4 py-4"
       >
         <Card className="space-y-4">
-          <FieldGroup label="照片" hint="选填，自动压缩后上传；会进入照片墙">
-            <CompressedFileInput name="photo" />
+          <FieldGroup label="照片" hint="可加多张（正/侧/局部），自动压缩上传">
+            <MultiPhotoInput />
           </FieldGroup>
           <FieldGroup label="日期">
             <Input

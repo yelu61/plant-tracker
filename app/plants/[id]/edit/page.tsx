@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 
 import { TopBar } from "@/components/bottom-nav";
 import { SpeciesPicker } from "@/components/species-picker";
+import { StatusFields } from "@/components/status-fields";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
+import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
 
 import { updatePlant } from "@/app/actions/plants";
@@ -48,14 +49,11 @@ export default async function EditPlantPage({
             defaultSpeciesId={plant.speciesId ?? null}
             defaultIntervalDays={plant.wateringIntervalDays ?? null}
           />
-          <FieldGroup label="状态">
-            <Select name="status" defaultValue={plant.status}>
-              <option value="alive">在养</option>
-              <option value="dormant">休眠</option>
-              <option value="lost">已逝</option>
-              <option value="archived">归档</option>
-            </Select>
-          </FieldGroup>
+          <StatusFields
+            defaultStatus={plant.status}
+            defaultEndedAt={plant.endedAt}
+            defaultEndingNote={plant.endingNote}
+          />
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="位置">
               <Input name="location" defaultValue={plant.location ?? ""} />
@@ -64,6 +62,9 @@ export default async function EditPlantPage({
               <Input name="potSize" defaultValue={plant.potSize ?? ""} />
             </FieldGroup>
           </div>
+          <FieldGroup label="阶段（选填）" hint="比如 萌发 / 生长期 / 花期 / 休眠期">
+            <Input name="stage" defaultValue={plant.stage ?? ""} placeholder="生长期" />
+          </FieldGroup>
         </Card>
 
         <Card className="space-y-4">

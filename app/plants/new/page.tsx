@@ -35,6 +35,10 @@ export default async function NewPlantPage() {
               <Input name="potSize" placeholder="陶盆 12cm" />
             </FieldGroup>
           </div>
+
+          <FieldGroup label="阶段（选填）" hint="比如 萌发 / 生长期 / 花期 / 休眠期">
+            <Input name="stage" placeholder="生长期" />
+          </FieldGroup>
         </Card>
 
         <Card className="space-y-4">

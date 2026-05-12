@@ -31,9 +31,12 @@ export const plants = sqliteTable("plants", {
   acquiredFrom: text("acquired_from"),
   acquiredPrice: real("acquired_price"),
   wateringIntervalDays: integer("watering_interval_days"),
+  stage: text("stage"),
   status: text("status", { enum: ["alive", "dormant", "lost", "archived"] })
     .notNull()
     .default("alive"),
+  endedAt: integer("ended_at", { mode: "timestamp" }),
+  endingNote: text("ending_note"),
   notes: text("notes"),
   createdAt: timestamp("created_at"),
 });

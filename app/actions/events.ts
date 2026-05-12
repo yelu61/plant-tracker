@@ -40,11 +40,13 @@ export async function logGrowth(plantId: number, formData: FormData) {
   const occurredAtRaw = formData.get("occurredAt") as string | null;
   const occurredAt = occurredAtRaw ? new Date(occurredAtRaw) : new Date();
 
-  const photoFile = formData.get("photo") as File | null;
-  let photoUrl: string | undefined;
-  if (photoFile && photoFile.size > 0) {
-    const saved = await saveFile(photoFile);
-    photoUrl = saved.url;
+  const photoFiles = formData
+    .getAll("photo")
+    .filter((v): v is File => v instanceof File && v.size > 0);
+  const photoUrls: string[] = [];
+  for (const f of photoFiles) {
+    const saved = await saveFile(f);
+    photoUrls.push(saved.url);
   }
 
   const [event] = await db
@@ -54,18 +56,20 @@ export async function logGrowth(plantId: number, formData: FormData) {
       type: "growth",
       occurredAt,
       detail,
-      metadata: { heightCm, leafCount, photoUrl },
+      metadata: { heightCm, leafCount, photoUrls },
     })
     .returning({ id: careEvents.id });
 
-  if (photoUrl) {
-    await db.insert(photos).values({
-      plantId,
-      eventId: event.id,
-      url: photoUrl,
-      caption: detail,
-      takenAt: occurredAt,
-    });
+  if (photoUrls.length > 0) {
+    await db.insert(photos).values(
+      photoUrls.map((url) => ({
+        plantId,
+        eventId: event.id,
+        url,
+        caption: detail,
+        takenAt: occurredAt,
+      })),
+    );
   }
 
   revalidatePath(`/plants/${plantId}`);

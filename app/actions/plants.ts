@@ -21,6 +21,7 @@ export async function createPlant(formData: FormData) {
       speciesId: parsed.speciesId ?? null,
       acquiredPrice: parsed.acquiredPrice ?? null,
       wateringIntervalDays: parsed.wateringIntervalDays ?? null,
+      endedAt: parsed.endedAt ?? null,
     })
     .returning({ id: plants.id });
   revalidatePath("/plants");
@@ -37,9 +38,11 @@ export async function updatePlant(id: number, formData: FormData) {
       speciesId: parsed.speciesId ?? null,
       acquiredPrice: parsed.acquiredPrice ?? null,
       wateringIntervalDays: parsed.wateringIntervalDays ?? null,
+      endedAt: parsed.endedAt ?? null,
     })
     .where(eq(plants.id, id));
   revalidatePath("/plants");
+  revalidatePath("/memories");
   revalidatePath(`/plants/${id}`);
   redirect(`/plants/${id}`);
 }

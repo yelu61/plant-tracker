@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { Calendar, Download, LogOut } from "lucide-react";
+import { Calendar, Download, LogOut, Skull } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 
@@ -34,6 +34,20 @@ export default async function SettingsPage() {
     <>
       <TopBar title="设置 / 备份" />
       <div className="space-y-4 px-4 py-4">
+        <Link href="/memories">
+          <Card className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-1">
+                <Skull className="h-4 w-4" /> 墓园 / 回忆
+              </CardTitle>
+              <CardDescription className="mt-1">
+                已逝去 / 归档 / 休眠的植物在这里
+              </CardDescription>
+            </div>
+            <span className="text-xs text-stone-400">→</span>
+          </Card>
+        </Link>
+
         <Card>
           <CardTitle className="flex items-center gap-1">
             <Calendar className="h-4 w-4" /> 浇水日历订阅

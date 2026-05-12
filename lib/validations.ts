@@ -32,7 +32,10 @@ export const plantSchema = z.object({
   acquiredFrom: z.string().max(80).optional().or(z.literal("")).transform((v) => v || undefined),
   acquiredPrice: optionalNumber,
   wateringIntervalDays: optionalNumber,
+  stage: z.string().max(40).optional().or(z.literal("")).transform((v) => v || undefined),
   status: z.enum(["alive", "dormant", "lost", "archived"]).default("alive"),
+  endedAt: optionalDate,
+  endingNote: z.string().max(2000).optional().or(z.literal("")).transform((v) => v || undefined),
   notes: z.string().max(2000).optional().or(z.literal("")).transform((v) => v || undefined),
 });
 

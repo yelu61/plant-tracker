@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { careEvents } from "@/lib/db/schema";
+import type { Photo } from "@/lib/db/schema";
 import { CARE_EVENT_META } from "@/lib/constants";
 import { cn, formatDate, formatMoney, relativeTime, waterStatus } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ type GrowthMeta = {
   heightCm?: number | null;
   leafCount?: number | null;
   photoUrl?: string | null;
+  photoUrls?: string[] | null;
 };
 
 export default async function PlantDetailPage({
@@ -56,6 +58,8 @@ export default async function PlantDetailPage({
 
   const growthEvents = events.filter((e) => e.type === "growth");
   const careTimeline = events.filter((e) => e.type !== "growth");
+  const photosByMonth = groupPhotosByMonth(plant.photos);
+  const isEnded = plant.status === "lost" || plant.status === "archived";
 
   return (
     <>
@@ -86,14 +90,47 @@ export default async function PlantDetailPage({
             {plant.species?.scientificName ? ` · ${plant.species.scientificName}` : ""}
             {plant.location ? ` · ${plant.location}` : ""}
           </CardDescription>
-
-          <WaterStatusLine water={water} />
-
-          <div className="mt-4">
-            <p className="mb-2 text-xs font-medium text-stone-500">快速打卡</p>
-            <QuickActionRow plantId={plant.id} />
+          <div className="mt-2 flex flex-wrap gap-2 text-xs">
+            {plant.status === "alive" ? (
+              <WaterStatusBadge water={water} />
+            ) : (
+              <StatusBadge status={plant.status} endedAt={plant.endedAt} />
+            )}
+            {plant.stage ? (
+              <span className="rounded-full bg-leaf-100 px-2 py-0.5 text-leaf-700 dark:bg-leaf-950/40 dark:text-leaf-300">
+                🌱 {plant.stage}
+              </span>
+            ) : null}
+            {plant.status === "dormant" ? (
+              <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-indigo-700">
+                💤 休眠中
+              </span>
+            ) : null}
           </div>
+
+          {plant.status === "alive" ? (
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-medium text-stone-500">快速打卡</p>
+              <QuickActionRow plantId={plant.id} />
+            </div>
+          ) : null}
         </Card>
+
+        {isEnded && plant.endingNote ? (
+          <Card className="border-stone-300 bg-stone-50 dark:bg-stone-900/60">
+            <CardTitle className="text-sm">
+              {plant.status === "lost" ? "🪦 最后的话" : "📦 归档备注"}
+            </CardTitle>
+            <p className="mt-2 whitespace-pre-wrap text-sm italic text-stone-700 dark:text-stone-300">
+              {plant.endingNote}
+            </p>
+            {plant.endedAt ? (
+              <p className="mt-2 text-xs text-stone-500">
+                {formatDate(plant.endedAt)}
+              </p>
+            ) : null}
+          </Card>
+        ) : null}
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           <InfoItem label="购入日期" value={formatDate(plant.acquiredAt)} />
@@ -138,6 +175,47 @@ export default async function PlantDetailPage({
           </div>
         </section>
 
+        {photosByMonth.length > 0 ? (
+          <section>
+            <h2 className="mb-2 text-sm font-semibold text-stone-700 dark:text-stone-300">
+              🕰 时光机
+            </h2>
+            <div className="space-y-3">
+              {photosByMonth.map(([month, monthPhotos]) => (
+                <div key={month}>
+                  <p className="mb-1 text-xs font-medium text-stone-500">{month}</p>
+                  <div className="-mx-4 overflow-x-auto px-4">
+                    <div className="flex gap-2 pb-1">
+                      {monthPhotos.map((ph) => (
+                        <Link
+                          key={ph.id}
+                          href={ph.url}
+                          target="_blank"
+                          className="shrink-0"
+                        >
+                          <div className="relative h-24 w-24 overflow-hidden rounded-lg">
+                            <Image
+                              src={ph.url}
+                              alt=""
+                              fill
+                              sizes="96px"
+                              className="object-cover"
+                              unoptimized
+                            />
+                            <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-1 py-0.5 text-[10px] text-white">
+                              {ph.takenAt ? formatDay(ph.takenAt) : ""}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <section>
           <div className="mb-2 flex items-center justify-between">
             <h2 className="flex items-center gap-1 text-sm font-semibold text-stone-700 dark:text-stone-300">
@@ -157,26 +235,33 @@ export default async function PlantDetailPage({
             <ul className="space-y-3">
               {growthEvents.map((e) => {
                 const meta = (e.metadata as GrowthMeta | null) ?? {};
+                const urls = meta.photoUrls?.length
+                  ? meta.photoUrls
+                  : meta.photoUrl
+                  ? [meta.photoUrl]
+                  : [];
                 return (
                   <li key={e.id}>
                     <Card>
                       <div className="flex items-start gap-3">
-                        {meta.photoUrl ? (
-                          <Link href={meta.photoUrl} target="_blank" className="shrink-0">
-                            <Image
-                              src={meta.photoUrl}
-                              alt=""
-                              width={96}
-                              height={96}
-                              className="h-24 w-24 rounded-lg object-cover"
-                              unoptimized
-                            />
-                          </Link>
-                        ) : (
-                          <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-2xl dark:bg-stone-800">
-                            📈
-                          </div>
-                        )}
+                        <div className="shrink-0">
+                          {urls.length === 0 ? (
+                            <div className="flex h-24 w-24 items-center justify-center rounded-lg bg-stone-100 text-2xl dark:bg-stone-800">
+                              📈
+                            </div>
+                          ) : (
+                            <Link href={urls[0]} target="_blank">
+                              <Image
+                                src={urls[0]}
+                                alt=""
+                                width={96}
+                                height={96}
+                                className="h-24 w-24 rounded-lg object-cover"
+                                unoptimized
+                              />
+                            </Link>
+                          )}
+                        </div>
                         <div className="min-w-0 flex-1">
                           <div className="text-xs text-stone-500">
                             {formatDate(e.occurredAt)} · {relativeTime(e.occurredAt)}
@@ -190,6 +275,22 @@ export default async function PlantDetailPage({
                           ) : null}
                         </div>
                       </div>
+                      {urls.length > 1 ? (
+                        <div className="-mx-1 mt-2 flex gap-1 overflow-x-auto px-1">
+                          {urls.slice(1).map((u) => (
+                            <Link key={u} href={u} target="_blank" className="shrink-0">
+                              <Image
+                                src={u}
+                                alt=""
+                                width={64}
+                                height={64}
+                                className="h-16 w-16 rounded-md object-cover"
+                                unoptimized
+                              />
+                            </Link>
+                          ))}
+                        </div>
+                      ) : null}
                     </Card>
                   </li>
                 );
@@ -245,8 +346,8 @@ export default async function PlantDetailPage({
         <div className="pt-4">
           <DeleteButton
             action={deletePlant.bind(null, plant.id)}
-            label="归档 / 删除这株"
-            confirmText={`确认删除「${plant.name}」？事件和照片记录会一并清除。`}
+            label="彻底删除这株（事件 + 照片）"
+            confirmText={`确认彻底删除「${plant.name}」？所有记录无法找回。如果只是养死了或暂时不养，建议在编辑里改"状态"即可。`}
           />
         </div>
       </div>
@@ -254,27 +355,49 @@ export default async function PlantDetailPage({
   );
 }
 
-function WaterStatusLine({ water }: { water: ReturnType<typeof waterStatus> }) {
+function WaterStatusBadge({ water }: { water: ReturnType<typeof waterStatus> }) {
   if (water.days == null) {
     return (
-      <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">
+      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">
         💧 还没浇过水
-      </p>
+      </span>
     );
   }
   return (
-    <p
+    <span
       className={cn(
-        "mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs",
-        water.overdue
-          ? "bg-amber-100 text-amber-700"
-          : "bg-sky-100 text-sky-700",
+        "rounded-full px-2 py-0.5",
+        water.overdue ? "bg-amber-100 text-amber-700" : "bg-sky-100 text-sky-700",
       )}
     >
       💧 距上次浇水 {water.days} 天
       {water.overdue ? "（该浇了）" : water.dueIn != null ? `（还有 ${water.dueIn} 天）` : ""}
-    </p>
+    </span>
   );
+}
+
+function StatusBadge({
+  status,
+  endedAt,
+}: {
+  status: string;
+  endedAt: Date | null | undefined;
+}) {
+  if (status === "lost") {
+    return (
+      <span className="rounded-full bg-stone-700 px-2 py-0.5 text-stone-100">
+        🪦 已逝 {endedAt ? `· ${formatDate(endedAt)}` : ""}
+      </span>
+    );
+  }
+  if (status === "archived") {
+    return (
+      <span className="rounded-full bg-amber-700/80 px-2 py-0.5 text-amber-50">
+        📦 归档 {endedAt ? `· ${formatDate(endedAt)}` : ""}
+      </span>
+    );
+  }
+  return null;
 }
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
@@ -293,4 +416,21 @@ function CareLine({ label, value }: { label: string; value: string }) {
       <span>{value}</span>
     </div>
   );
+}
+
+function formatDay(d: Date | number) {
+  const date = typeof d === "number" ? new Date(d * 1000) : d;
+  return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(date);
+}
+
+function groupPhotosByMonth(photos: Photo[]): [string, Photo[]][] {
+  const groups = new Map<string, Photo[]>();
+  for (const p of photos) {
+    if (!p.takenAt) continue;
+    const d = p.takenAt instanceof Date ? p.takenAt : new Date(p.takenAt);
+    const key = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(p);
+  }
+  return Array.from(groups.entries());
 }
