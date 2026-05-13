@@ -160,14 +160,14 @@ const SEED: (typeof species.$inferInsert)[] = [
   },
   {
     commonName: "皮草花",
-    scientificName: "Episcia cupreata",
+    scientificName: "Primulina spp.",
     family: "苦苣苔科",
-    category: "观叶/观花",
-    careLight: "明亮散光",
-    careWater: "表土微干就浇",
-    careTemp: "18-28°C",
-    careHumidity: "高",
-    careNotes: "叶子绒毛，怕碰水；用浸盆法。",
+    category: "苦苣苔",
+    careLight: "明亮散光至半阴",
+    careWater: "表土微干浇水，浸盆更稳",
+    careTemp: "15-25°C",
+    careHumidity: "中高",
+    careNotes: "叶面有皮革感／绒毛，皮实耐养；春季集中开花。",
   },
   {
     commonName: "文心兰",
@@ -550,6 +550,17 @@ const SEED: (typeof species.$inferInsert)[] = [
   },
 
   // —— 苦苣苔类（已有 6 种） ——
+  {
+    commonName: "喜荫花",
+    scientificName: "Episcia cupreata",
+    family: "苦苣苔科",
+    category: "苦苣苔/观叶",
+    careLight: "明亮散光",
+    careWater: "表土微干就浇，浸盆为主",
+    careTemp: "18-28°C",
+    careHumidity: "高",
+    careNotes: "铜色绒毛叶；叶面忌沾水易留斑；冬季 < 15°C 易冻伤。",
+  },
   {
     commonName: "海豚花",
     scientificName: "Streptocarpus saxorum",
