@@ -7,6 +7,7 @@ import { FreeCombobox } from "@/components/free-combobox";
 import { SupplyAmountFields } from "@/components/supply-amount-fields";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DateInput } from "@/components/date-input";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
 import { getDistinctPurchaseSources, getDistinctUnits } from "@/lib/db/sources";
@@ -14,11 +15,6 @@ import { getDistinctPurchaseSources, getDistinctUnits } from "@/lib/db/sources";
 import { deleteSupply, updateSupply } from "@/app/actions/supplies";
 
 export const dynamic = "force-dynamic";
-
-function isoDate(d: Date | null | undefined) {
-  if (!d) return "";
-  return new Date(d).toISOString().slice(0, 10);
-}
 
 export default async function EditSupplyPage({
   params,
@@ -59,7 +55,7 @@ export default async function EditSupplyPage({
           />
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="购入日期">
-              <Input type="date" name="purchasedAt" defaultValue={isoDate(supply.purchasedAt)} />
+              <DateInput name="purchasedAt" defaultValue={supply.purchasedAt} />
             </FieldGroup>
             <FieldGroup label="价格 (¥)">
               <Input

@@ -7,6 +7,7 @@ import { SpeciesPicker } from "@/components/species-picker";
 import { StatusFields } from "@/components/status-fields";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DateInput } from "@/components/date-input";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
 import {
@@ -18,11 +19,6 @@ import {
 import { updatePlant } from "@/app/actions/plants";
 
 export const dynamic = "force-dynamic";
-
-function isoDate(d: Date | null | undefined) {
-  if (!d) return "";
-  return new Date(d).toISOString().slice(0, 10);
-}
 
 export default async function EditPlantPage({
   params,
@@ -88,7 +84,7 @@ export default async function EditPlantPage({
         <Card className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="购入日期">
-              <Input type="date" name="acquiredAt" defaultValue={isoDate(plant.acquiredAt)} />
+              <DateInput name="acquiredAt" defaultValue={plant.acquiredAt} />
             </FieldGroup>
             <FieldGroup label="价格 (¥)">
               <Input

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { DateInput } from "@/components/date-input";
 import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -10,13 +11,6 @@ const STATUS_LABELS: Record<string, string> = {
   lost: "已逝",
   archived: "归档",
 };
-
-function isoDate(d: Date | string | null | undefined) {
-  if (!d) return "";
-  const date = d instanceof Date ? d : new Date(d);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
-}
 
 export function StatusFields({
   defaultStatus = "alive",
@@ -53,11 +47,7 @@ export function StatusFields({
             {status === "lost" ? "🪦 离开记录" : "📦 归档信息"}
           </p>
           <FieldGroup label="结束日期">
-            <Input
-              type="date"
-              name="endedAt"
-              defaultValue={isoDate(defaultEndedAt)}
-            />
+            <DateInput name="endedAt" defaultValue={defaultEndedAt} />
           </FieldGroup>
           <FieldGroup
             label={status === "lost" ? "复盘 / 最后的话" : "归档备注"}

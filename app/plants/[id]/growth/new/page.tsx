@@ -5,6 +5,7 @@ import { TopBar } from "@/components/bottom-nav";
 import { MultiPhotoInput } from "@/components/multi-photo-input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DateInput } from "@/components/date-input";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
 
@@ -39,11 +40,7 @@ export default async function NewGrowthPage({
             <MultiPhotoInput />
           </FieldGroup>
           <FieldGroup label="日期">
-            <Input
-              type="date"
-              name="occurredAt"
-              defaultValue={new Date().toISOString().slice(0, 10)}
-            />
+            <DateInput name="occurredAt" defaultValue={new Date()} />
           </FieldGroup>
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="高度 (cm)">

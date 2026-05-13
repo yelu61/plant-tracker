@@ -5,6 +5,7 @@ import { FreeCombobox } from "@/components/free-combobox";
 import { SupplyAmountFields } from "@/components/supply-amount-fields";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DateInput } from "@/components/date-input";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { getDistinctPurchaseSources, getDistinctUnits } from "@/lib/db/sources";
 
@@ -29,7 +30,7 @@ export default async function NewSupplyPage() {
           <SupplyAmountFields unitOptions={units} />
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="购入日期">
-              <Input type="date" name="purchasedAt" />
+              <DateInput name="purchasedAt" />
             </FieldGroup>
             <FieldGroup label="价格 (¥)">
               <Input type="number" step="0.01" name="price" placeholder="0.00" />

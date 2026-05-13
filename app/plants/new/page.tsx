@@ -5,6 +5,7 @@ import { FreeCombobox } from "@/components/free-combobox";
 import { SpeciesPicker } from "@/components/species-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DateInput } from "@/components/date-input";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
 import {
@@ -62,7 +63,7 @@ export default async function NewPlantPage() {
           <p className="text-xs font-medium text-stone-500">购入信息（选填）</p>
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="购入日期">
-              <Input type="date" name="acquiredAt" />
+              <DateInput name="acquiredAt" />
             </FieldGroup>
             <FieldGroup label="价格 (¥)">
               <Input type="number" step="0.01" name="acquiredPrice" placeholder="0.00" />
