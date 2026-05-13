@@ -413,48 +413,18 @@ function OverviewCard({
       </div>
 
       {overview.speciesBreakdown.length > 0 ? (
-        <ul className="mt-3 space-y-1">
-          {overview.speciesBreakdown.map((s) => (
-            <li key={s.name}>
-              <span className="flex items-center justify-between rounded-lg px-2 py-1 text-xs">
-                <span className="text-stone-600 dark:text-stone-400">
-                  🌱 {s.name}
-                  <span className="ml-1 text-stone-400">· {s.total} 株</span>
-                </span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      {overview.locations.length > 0 ? (
-        <ul className="mt-3 space-y-1">
-          {overview.locations.map((l) => (
-            <li key={l.location}>
-              <Link
-                href={urlWith({ q, status, water }, { location: l.location })}
-                scroll={false}
-                className={cn(
-                  "flex items-center justify-between rounded-lg px-2 py-1 text-xs transition",
-                  location === l.location && "bg-leaf-50 dark:bg-leaf-950/30",
-                  location !== l.location && "hover:bg-stone-100 dark:hover:bg-stone-800",
-                )}
+        <div className="-mx-4 mt-3 overflow-x-auto px-4">
+          <div className="flex gap-2 whitespace-nowrap pb-1">
+            {overview.speciesBreakdown.map((s) => (
+              <span
+                key={s.name}
+                className="inline-flex shrink-0 items-center rounded-full border border-stone-200 bg-stone-50 px-2.5 py-0.5 text-[11px] text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
               >
-                <span className="text-stone-600 dark:text-stone-400">
-                  📍 {l.location}
-                  <span className="ml-1 text-stone-400">· {l.total} 株</span>
-                </span>
-                {l.overdue > 0 ? (
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">
-                    需浇 {l.overdue}
-                  </span>
-                ) : (
-                  <span className="text-stone-400">✓</span>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
+                {s.name} <span className="ml-1 text-stone-400">{s.total}</span>
+              </span>
+            ))}
+          </div>
+        </div>
       ) : null}
     </Card>
   );
