@@ -9,6 +9,7 @@ import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
 import { SUPPLY_CATEGORY_META } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { supplyCategories } from "@/lib/db/schema";
+import { getDistinctPurchaseSources } from "@/lib/db/sources";
 
 import { deleteSupply, updateSupply } from "@/app/actions/supplies";
 
@@ -32,6 +33,8 @@ export default async function EditSupplyPage({
     where: (s, { eq }) => eq(s.id, id),
   });
   if (!supply) notFound();
+
+  const sources = await getDistinctPurchaseSources();
 
   return (
     <>
@@ -63,8 +66,17 @@ export default async function EditSupplyPage({
               />
             </FieldGroup>
           </div>
-          <FieldGroup label="来源">
-            <Input name="purchasedFrom" defaultValue={supply.purchasedFrom ?? ""} />
+          <FieldGroup label="来源 / 购入途径">
+            <Input
+              name="purchasedFrom"
+              defaultValue={supply.purchasedFrom ?? ""}
+              list="dl-sources"
+            />
+            <datalist id="dl-sources">
+              {sources.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
           </FieldGroup>
           <div className="grid grid-cols-3 gap-3">
             <FieldGroup label="总数量">

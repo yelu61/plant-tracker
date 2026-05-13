@@ -4,12 +4,17 @@ import { TopBar } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
+import { getDistinctPurchaseSources } from "@/lib/db/sources";
 import { SUPPLY_CATEGORY_META } from "@/lib/constants";
 import { supplyCategories } from "@/lib/db/schema";
 
 import { createSupply } from "@/app/actions/supplies";
 
-export default function NewSupplyPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewSupplyPage() {
+  const sources = await getDistinctPurchaseSources();
+
   return (
     <>
       <TopBar title="添物品" />
@@ -35,8 +40,17 @@ export default function NewSupplyPage() {
               <Input type="number" step="0.01" name="price" placeholder="0.00" />
             </FieldGroup>
           </div>
-          <FieldGroup label="来源">
-            <Input name="purchasedFrom" placeholder="淘宝 / 花市 …" />
+          <FieldGroup label="来源 / 购入途径">
+            <Input
+              name="purchasedFrom"
+              list="dl-sources"
+              placeholder="淘宝 / 花市 …"
+            />
+            <datalist id="dl-sources">
+              {sources.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
           </FieldGroup>
           <div className="grid grid-cols-3 gap-3">
             <FieldGroup label="总数量">

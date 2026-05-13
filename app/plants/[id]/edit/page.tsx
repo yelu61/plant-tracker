@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -9,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
-import { plants } from "@/lib/db/schema";
+import { getDistinctLocations, getDistinctPurchaseSources } from "@/lib/db/sources";
 
 import { updatePlant } from "@/app/actions/plants";
 
@@ -34,19 +33,11 @@ export default async function EditPlantPage({
   });
   if (!plant) notFound();
 
-  const [speciesList, distinctLocations, distinctSources] = await Promise.all([
+  const [speciesList, locations, sources] = await Promise.all([
     db.query.species.findMany({ orderBy: (s, { asc }) => asc(s.commonName) }),
-    db
-      .selectDistinct({ v: plants.location })
-      .from(plants)
-      .where(sql`${plants.location} IS NOT NULL AND ${plants.location} != ''`),
-    db
-      .selectDistinct({ v: plants.acquiredFrom })
-      .from(plants)
-      .where(sql`${plants.acquiredFrom} IS NOT NULL AND ${plants.acquiredFrom} != ''`),
+    getDistinctLocations(),
+    getDistinctPurchaseSources(),
   ]);
-  const locations = distinctLocations.map((r) => r.v).filter((v): v is string => !!v).sort();
-  const sources = distinctSources.map((r) => r.v).filter((v): v is string => !!v).sort();
 
   return (
     <>
