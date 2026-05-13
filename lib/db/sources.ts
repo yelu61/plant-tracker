@@ -3,6 +3,17 @@ import { sql } from "drizzle-orm";
 import { db } from ".";
 import { plants, supplies } from "./schema";
 
+const PRESET_PURCHASE_SOURCES = [
+  "淘宝",
+  "拼多多",
+  "京东",
+  "咸鱼",
+  "花市",
+  "苗圃",
+  "友赠",
+  "自繁殖",
+];
+
 export async function getDistinctPurchaseSources(): Promise<string[]> {
   const [a, b] = await Promise.all([
     db
@@ -14,10 +25,10 @@ export async function getDistinctPurchaseSources(): Promise<string[]> {
       .from(supplies)
       .where(sql`${supplies.purchasedFrom} IS NOT NULL AND ${supplies.purchasedFrom} != ''`),
   ]);
-  const set = new Set<string>();
+  const set = new Set<string>(PRESET_PURCHASE_SOURCES);
   for (const r of a) if (r.v) set.add(r.v);
   for (const r of b) if (r.v) set.add(r.v);
-  return Array.from(set).sort();
+  return Array.from(set).sort((x, y) => x.localeCompare(y, "zh-Hans-CN"));
 }
 
 export async function getDistinctLocations(): Promise<string[]> {
@@ -28,5 +39,5 @@ export async function getDistinctLocations(): Promise<string[]> {
   return rows
     .map((r) => r.v)
     .filter((v): v is string => !!v)
-    .sort();
+    .sort((x, y) => x.localeCompare(y, "zh-Hans-CN"));
 }
