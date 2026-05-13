@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
-import { getDistinctLocations, getDistinctPurchaseSources } from "@/lib/db/sources";
+import {
+  getDistinctLocations,
+  getDistinctPurchaseSources,
+  getDistinctStages,
+} from "@/lib/db/sources";
 
 import { updatePlant } from "@/app/actions/plants";
 
@@ -34,10 +38,11 @@ export default async function EditPlantPage({
   });
   if (!plant) notFound();
 
-  const [speciesList, locations, sources] = await Promise.all([
+  const [speciesList, locations, sources, stages] = await Promise.all([
     db.query.species.findMany({ orderBy: (s, { asc }) => asc(s.commonName) }),
     getDistinctLocations(),
     getDistinctPurchaseSources(),
+    getDistinctStages(),
   ]);
 
   return (
@@ -70,8 +75,13 @@ export default async function EditPlantPage({
               <Input name="potSize" defaultValue={plant.potSize ?? ""} />
             </FieldGroup>
           </div>
-          <FieldGroup label="阶段（选填）" hint="比如 萌发 / 生长期 / 花期 / 休眠期">
-            <Input name="stage" defaultValue={plant.stage ?? ""} placeholder="生长期" />
+          <FieldGroup label="阶段（选填）" hint="按需选个标签，可自定义">
+            <FreeCombobox
+              name="stage"
+              options={stages}
+              defaultValue={plant.stage}
+              placeholder="生长期 / 花期 / 休眠期 …"
+            />
           </FieldGroup>
         </Card>
 

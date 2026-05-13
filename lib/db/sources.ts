@@ -32,6 +32,19 @@ const PRESET_UNITS = [
   "支",
 ];
 
+const PRESET_STAGES = [
+  "萌发期",
+  "幼苗期",
+  "生长期",
+  "营养期",
+  "抽枝期",
+  "孕蕾期",
+  "花期",
+  "结果期",
+  "休眠期",
+  "越冬期",
+];
+
 export async function getDistinctPurchaseSources(): Promise<string[]> {
   const [a, b] = await Promise.all([
     db
@@ -68,4 +81,14 @@ export async function getDistinctUnits(): Promise<string[]> {
   const set = new Set<string>(PRESET_UNITS);
   for (const r of rows) if (r.v) set.add(r.v);
   return Array.from(set).sort((x, y) => x.localeCompare(y, "zh-Hans-CN"));
+}
+
+export async function getDistinctStages(): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ v: plants.stage })
+    .from(plants)
+    .where(sql`${plants.stage} IS NOT NULL AND ${plants.stage} != ''`);
+  const set = new Set<string>(PRESET_STAGES);
+  for (const r of rows) if (r.v) set.add(r.v);
+  return Array.from(set);
 }
