@@ -50,7 +50,7 @@ export function PhotoGrid({
                 {p.caption}
               </p>
             ) : null}
-            <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-gradient-to-t from-black/70 to-transparent px-1 py-1 opacity-0 transition group-hover:opacity-100">
+            <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-gradient-to-t from-black/60 to-transparent px-1 py-1">
               {isCover ? (
                 <form action={clearCoverPhoto.bind(null, plantId)}>
                   <button
