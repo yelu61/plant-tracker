@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Leaf, Notebook, Package, Plus, Sprout } from "lucide-react";
+import { ChevronLeft, Home, Leaf, Notebook, Package, Plus, Sprout } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -61,13 +61,31 @@ export function BottomNav() {
   );
 }
 
-export function TopBar({ title, action }: { title: string; action?: React.ReactNode }) {
+export function TopBar({
+  title,
+  action,
+  backHref,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  backHref?: string;
+}) {
   return (
     <header className="pt-safe sticky top-0 z-20 border-b border-stone-200 bg-white/90 backdrop-blur dark:border-stone-800 dark:bg-stone-950/80">
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 pb-3">
-        <div className="flex items-center gap-2">
-          <Sprout className="h-5 w-5 text-leaf-600" />
-          <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
+        <div className="flex min-w-0 items-center gap-2">
+          {backHref ? (
+            <Link
+              href={backHref}
+              aria-label="返回"
+              className="-ml-1 flex h-8 w-8 items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800"
+            >
+              <ChevronLeft className="h-5 w-5 text-stone-600" />
+            </Link>
+          ) : (
+            <Sprout className="h-5 w-5 shrink-0 text-leaf-600" />
+          )}
+          <h1 className="truncate text-lg font-semibold tracking-tight">{title}</h1>
         </div>
         {action}
       </div>

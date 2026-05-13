@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { db } from "@/lib/db";
 import { plants, species as speciesTbl } from "@/lib/db/schema";
-import { cn, waterStatus } from "@/lib/utils";
+import { cn, daysSince, waterStatus } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -192,6 +192,7 @@ export default async function PlantsPage({
               const lastWater = p.events[0];
               const cover = p.coverPhoto ?? p.photos[0];
               const w = waterStatus(lastWater?.occurredAt, p.wateringIntervalDays);
+              const companionDays = daysSince(p.acquiredAt ?? p.createdAt);
               return (
                 <li key={p.id}>
                   <Link href={`/plants/${p.id}`} className="block">
@@ -231,6 +232,11 @@ export default async function PlantsPage({
                           {p.species?.commonName ?? "未分类"}
                           {p.location ? ` · ${p.location}` : ""}
                         </CardDescription>
+                        {companionDays != null ? (
+                          <p className="mt-1 text-[11px] text-leaf-700 dark:text-leaf-300">
+                            🌱 已陪伴 {companionDays} 天
+                          </p>
+                        ) : null}
                       </div>
                     </Card>
                   </Link>
