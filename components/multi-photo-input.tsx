@@ -80,7 +80,12 @@ export function MultiPhotoInput({ name = "photo" }: { name?: string }) {
             ) : null}
           </div>
         ))}
-        <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 text-xs text-stone-500 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900">
+        <label
+          className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 text-xs text-stone-500 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900"
+          onClick={() => {
+            if (inputRef.current) inputRef.current.value = "";
+          }}
+        >
           {busy ? "处理中…" : items.length === 0 ? "+ 加照片" : "+ 再加"}
           <input
             ref={inputRef}

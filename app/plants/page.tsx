@@ -278,6 +278,7 @@ type Overview = {
   lost: number;
   archived: number;
   overdue: number;
+  species: number;
   locations: LocationRow[];
 };
 
@@ -290,9 +291,11 @@ function computeOverview(
     lost: 0,
     archived: 0,
     overdue: 0,
+    species: 0,
     locations: [],
   };
   const locMap = new Map<string, LocationRow>();
+  const speciesSet = new Set<number>();
   for (const p of plants) {
     if (p.status === "alive") out.alive += 1;
     else if (p.status === "dormant") out.dormant += 1;
@@ -301,6 +304,7 @@ function computeOverview(
     const w = waterStatus(p.events[0]?.occurredAt, p.wateringIntervalDays);
     const isOverdue = p.status === "alive" && w.overdue;
     if (isOverdue) out.overdue += 1;
+    if (p.speciesId != null) speciesSet.add(p.speciesId);
     if (p.location && p.status === "alive") {
       const row = locMap.get(p.location) ?? { location: p.location, total: 0, overdue: 0 };
       row.total += 1;
@@ -308,6 +312,7 @@ function computeOverview(
       locMap.set(p.location, row);
     }
   }
+  out.species = speciesSet.size;
   out.locations = Array.from(locMap.values()).sort((a, b) => b.total - a.total);
   return out;
 }
@@ -369,6 +374,11 @@ function OverviewCard({
           <Link href="/memories" className="text-stone-500 hover:underline">
             🪦 历史 {overview.lost + overview.archived}
           </Link>
+        ) : null}
+        {overview.species > 0 ? (
+          <span className="text-stone-500">
+            🧬 {overview.species} 个物种
+          </span>
         ) : null}
         {plantSpend > 0 ? (
           <span className="text-stone-500">
