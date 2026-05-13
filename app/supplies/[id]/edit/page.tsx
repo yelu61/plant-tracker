@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { DeleteButton } from "@/components/delete-button";
 import { TopBar } from "@/components/bottom-nav";
+import { FreeCombobox } from "@/components/free-combobox";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
@@ -67,16 +68,11 @@ export default async function EditSupplyPage({
             </FieldGroup>
           </div>
           <FieldGroup label="来源 / 购入途径">
-            <Input
+            <FreeCombobox
               name="purchasedFrom"
-              defaultValue={supply.purchasedFrom ?? ""}
-              list="dl-sources"
+              options={sources}
+              defaultValue={supply.purchasedFrom}
             />
-            <datalist id="dl-sources">
-              {sources.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
           </FieldGroup>
           <div className="grid grid-cols-3 gap-3">
             <FieldGroup label="总数量">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
+import { FreeCombobox } from "@/components/free-combobox";
 import { SpeciesPicker } from "@/components/species-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -32,12 +33,11 @@ export default async function NewPlantPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="位置">
-              <Input name="location" list="dl-locations" placeholder="阳台 / 客厅 / …" />
-              <datalist id="dl-locations">
-                {locations.map((l) => (
-                  <option key={l} value={l} />
-                ))}
-              </datalist>
+              <FreeCombobox
+                name="location"
+                options={locations}
+                placeholder="阳台 / 客厅 / …"
+              />
             </FieldGroup>
             <FieldGroup label="盆型/口径">
               <Input name="potSize" placeholder="陶盆 12cm" />
@@ -60,16 +60,11 @@ export default async function NewPlantPage() {
             </FieldGroup>
           </div>
           <FieldGroup label="购入途径">
-            <Input
+            <FreeCombobox
               name="acquiredFrom"
-              list="dl-sources"
-              placeholder="花市 / 拼多多 / 朋友送 …"
+              options={sources}
+              placeholder="花市 / 拼多多 / 咸鱼 / 朋友送 …"
             />
-            <datalist id="dl-sources">
-              {sources.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
           </FieldGroup>
         </Card>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
+import { FreeCombobox } from "@/components/free-combobox";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
@@ -41,16 +42,11 @@ export default async function NewSupplyPage() {
             </FieldGroup>
           </div>
           <FieldGroup label="来源 / 购入途径">
-            <Input
+            <FreeCombobox
               name="purchasedFrom"
-              list="dl-sources"
-              placeholder="淘宝 / 花市 …"
+              options={sources}
+              placeholder="淘宝 / 花市 / 咸鱼 …"
             />
-            <datalist id="dl-sources">
-              {sources.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
           </FieldGroup>
           <div className="grid grid-cols-3 gap-3">
             <FieldGroup label="总数量">

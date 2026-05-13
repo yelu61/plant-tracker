@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { TopBar } from "@/components/bottom-nav";
+import { FreeCombobox } from "@/components/free-combobox";
 import { SpeciesPicker } from "@/components/species-picker";
 import { StatusFields } from "@/components/status-fields";
 import { Button } from "@/components/ui/button";
@@ -59,16 +60,11 @@ export default async function EditPlantPage({
           />
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="位置">
-              <Input
+              <FreeCombobox
                 name="location"
-                defaultValue={plant.location ?? ""}
-                list="dl-locations"
+                options={locations}
+                defaultValue={plant.location}
               />
-              <datalist id="dl-locations">
-                {locations.map((l) => (
-                  <option key={l} value={l} />
-                ))}
-              </datalist>
             </FieldGroup>
             <FieldGroup label="盆型">
               <Input name="potSize" defaultValue={plant.potSize ?? ""} />
@@ -94,16 +90,11 @@ export default async function EditPlantPage({
             </FieldGroup>
           </div>
           <FieldGroup label="购入途径">
-            <Input
+            <FreeCombobox
               name="acquiredFrom"
-              defaultValue={plant.acquiredFrom ?? ""}
-              list="dl-sources"
+              options={sources}
+              defaultValue={plant.acquiredFrom}
             />
-            <datalist id="dl-sources">
-              {sources.map((s) => (
-                <option key={s} value={s} />
-              ))}
-            </datalist>
           </FieldGroup>
         </Card>
 
