@@ -93,6 +93,7 @@ export default async function PlantsPage({
   // Overview rollup uses ALL plants (not filtered), for stable totals
   const allPlants = await db.query.plants.findMany({
     with: {
+      species: true,
       events: {
         where: (e, { eq }) => eq(e.type, "water"),
         orderBy: (e, { desc }) => desc(e.occurredAt),
@@ -272,6 +273,11 @@ type LocationRow = {
   overdue: number;
 };
 
+type SpeciesRow = {
+  name: string;
+  total: number;
+};
+
 type Overview = {
   alive: number;
   dormant: number;
@@ -280,10 +286,11 @@ type Overview = {
   overdue: number;
   species: number;
   locations: LocationRow[];
+  speciesBreakdown: SpeciesRow[];
 };
 
 function computeOverview(
-  plants: (Plant & { events: { occurredAt: Date }[] })[],
+  plants: (Plant & { species: { commonName: string | null } | null; events: { occurredAt: Date }[] })[],
 ): Overview {
   const out: Overview = {
     alive: 0,
@@ -293,8 +300,10 @@ function computeOverview(
     overdue: 0,
     species: 0,
     locations: [],
+    speciesBreakdown: [],
   };
   const locMap = new Map<string, LocationRow>();
+  const speciesMap = new Map<string, SpeciesRow>();
   const speciesSet = new Set<number>();
   for (const p of plants) {
     if (p.status === "alive") out.alive += 1;
@@ -305,6 +314,10 @@ function computeOverview(
     const isOverdue = p.status === "alive" && w.overdue;
     if (isOverdue) out.overdue += 1;
     if (p.speciesId != null) speciesSet.add(p.speciesId);
+    const spName = p.species?.commonName ?? "未分类";
+    const spRow = speciesMap.get(spName) ?? { name: spName, total: 0 };
+    spRow.total += 1;
+    speciesMap.set(spName, spRow);
     if (p.location && p.status === "alive") {
       const row = locMap.get(p.location) ?? { location: p.location, total: 0, overdue: 0 };
       row.total += 1;
@@ -314,6 +327,7 @@ function computeOverview(
   }
   out.species = speciesSet.size;
   out.locations = Array.from(locMap.values()).sort((a, b) => b.total - a.total);
+  out.speciesBreakdown = Array.from(speciesMap.values()).sort((a, b) => b.total - a.total);
   return out;
 }
 
@@ -397,6 +411,21 @@ function OverviewCard({
           <span className="ml-auto text-xs text-emerald-700">💧 全部不缺水</span>
         )}
       </div>
+
+      {overview.speciesBreakdown.length > 0 ? (
+        <ul className="mt-3 space-y-1">
+          {overview.speciesBreakdown.map((s) => (
+            <li key={s.name}>
+              <span className="flex items-center justify-between rounded-lg px-2 py-1 text-xs">
+                <span className="text-stone-600 dark:text-stone-400">
+                  🌱 {s.name}
+                  <span className="ml-1 text-stone-400">· {s.total} 株</span>
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {overview.locations.length > 0 ? (
         <ul className="mt-3 space-y-1">
