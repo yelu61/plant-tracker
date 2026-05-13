@@ -28,6 +28,14 @@ export default async function HomePage() {
     })
     .from(supplies);
 
+  const [plantSpend] = await db
+    .select({
+      total: sql<number>`coalesce(sum(${plants.acquiredPrice}), 0)`.mapWith(Number),
+    })
+    .from(plants);
+
+  const totalSpend = (spendTotal?.total ?? 0) + (plantSpend?.total ?? 0);
+
   const recent = await db.query.careEvents.findMany({
     with: { plant: true },
     orderBy: desc(careEvents.occurredAt),
@@ -80,7 +88,7 @@ export default async function HomePage() {
           <StatTile
             icon={<Package className="h-4 w-4" />}
             label="累计支出"
-            value={formatMoney(spendTotal?.total)}
+            value={formatMoney(totalSpend)}
             href="/supplies"
           />
         </section>
