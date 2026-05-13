@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 
 import { BottomNav } from "@/components/bottom-nav";
+import { OfflineBootstrap } from "@/components/offline-bootstrap";
+import { OfflineIndicator } from "@/components/offline-indicator";
 
 import "./globals.css";
 
@@ -39,6 +41,8 @@ export default function RootLayout({
           <main className="mx-auto max-w-3xl">{children}</main>
         </div>
         <BottomNav />
+        <OfflineIndicator />
+        <OfflineBootstrap />
       </body>
     </html>
   );
