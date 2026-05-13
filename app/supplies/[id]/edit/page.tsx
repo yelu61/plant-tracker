@@ -4,13 +4,12 @@ import { notFound } from "next/navigation";
 import { DeleteButton } from "@/components/delete-button";
 import { TopBar } from "@/components/bottom-nav";
 import { FreeCombobox } from "@/components/free-combobox";
+import { SupplyAmountFields } from "@/components/supply-amount-fields";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
-import { SUPPLY_CATEGORY_META } from "@/lib/constants";
+import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
-import { supplyCategories } from "@/lib/db/schema";
-import { getDistinctPurchaseSources } from "@/lib/db/sources";
+import { getDistinctPurchaseSources, getDistinctUnits } from "@/lib/db/sources";
 
 import { deleteSupply, updateSupply } from "@/app/actions/supplies";
 
@@ -35,25 +34,29 @@ export default async function EditSupplyPage({
   });
   if (!supply) notFound();
 
-  const sources = await getDistinctPurchaseSources();
+  const [sources, units] = await Promise.all([
+    getDistinctPurchaseSources(),
+    getDistinctUnits(),
+  ]);
 
   return (
     <>
-      <TopBar title={`编辑：${supply.name}`} />
+      <TopBar title={`编辑：${supply.name}`} backHref="/supplies" />
       <form action={updateSupply.bind(null, supply.id)} className="space-y-4 px-4 py-4">
         <Card className="space-y-4">
           <FieldGroup label="名称 *">
             <Input name="name" required defaultValue={supply.name} />
           </FieldGroup>
-          <FieldGroup label="类别 *">
-            <Select name="category" required defaultValue={supply.category}>
-              {supplyCategories.map((c) => (
-                <option key={c} value={c}>
-                  {SUPPLY_CATEGORY_META[c].emoji} {SUPPLY_CATEGORY_META[c].label}
-                </option>
-              ))}
-            </Select>
-          </FieldGroup>
+          <SupplyAmountFields
+            defaultCategory={supply.category}
+            defaults={{
+              quantity: supply.quantity,
+              quantityInUse: supply.quantityInUse,
+              unit: supply.unit,
+              remainingPct: supply.remainingPct,
+            }}
+            unitOptions={units}
+          />
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="购入日期">
               <Input type="date" name="purchasedAt" defaultValue={isoDate(supply.purchasedAt)} />
@@ -72,37 +75,6 @@ export default async function EditSupplyPage({
               name="purchasedFrom"
               options={sources}
               defaultValue={supply.purchasedFrom}
-            />
-          </FieldGroup>
-          <div className="grid grid-cols-3 gap-3">
-            <FieldGroup label="总数量">
-              <Input
-                type="number"
-                step="0.01"
-                name="quantity"
-                defaultValue={supply.quantity ?? ""}
-              />
-            </FieldGroup>
-            <FieldGroup label="在用">
-              <Input
-                type="number"
-                step="0.01"
-                name="quantityInUse"
-                defaultValue={supply.quantityInUse ?? ""}
-                placeholder="比如盆 3"
-              />
-            </FieldGroup>
-            <FieldGroup label="单位">
-              <Input name="unit" defaultValue={supply.unit ?? ""} placeholder="袋 / L / 个" />
-            </FieldGroup>
-          </div>
-          <FieldGroup label="剩余 %" hint="对消耗类物品（土、肥、药）有意义">
-            <Input
-              type="number"
-              name="remainingPct"
-              min={0}
-              max={100}
-              defaultValue={supply.remainingPct ?? 100}
             />
           </FieldGroup>
           <FieldGroup label="备注">

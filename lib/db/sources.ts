@@ -14,6 +14,24 @@ const PRESET_PURCHASE_SOURCES = [
   "自繁殖",
 ];
 
+const PRESET_UNITS = [
+  "袋",
+  "包",
+  "瓶",
+  "罐",
+  "kg",
+  "g",
+  "L",
+  "mL",
+  "个",
+  "把",
+  "张",
+  "根",
+  "米",
+  "盒",
+  "支",
+];
+
 export async function getDistinctPurchaseSources(): Promise<string[]> {
   const [a, b] = await Promise.all([
     db
@@ -40,4 +58,14 @@ export async function getDistinctLocations(): Promise<string[]> {
     .map((r) => r.v)
     .filter((v): v is string => !!v)
     .sort((x, y) => x.localeCompare(y, "zh-Hans-CN"));
+}
+
+export async function getDistinctUnits(): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ v: supplies.unit })
+    .from(supplies)
+    .where(sql`${supplies.unit} IS NOT NULL AND ${supplies.unit} != ''`);
+  const set = new Set<string>(PRESET_UNITS);
+  for (const r of rows) if (r.v) set.add(r.v);
+  return Array.from(set).sort((x, y) => x.localeCompare(y, "zh-Hans-CN"));
 }

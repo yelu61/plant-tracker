@@ -2,37 +2,31 @@ import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
 import { FreeCombobox } from "@/components/free-combobox";
+import { SupplyAmountFields } from "@/components/supply-amount-fields";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
-import { getDistinctPurchaseSources } from "@/lib/db/sources";
-import { SUPPLY_CATEGORY_META } from "@/lib/constants";
-import { supplyCategories } from "@/lib/db/schema";
+import { FieldGroup, Input, Textarea } from "@/components/ui/input";
+import { getDistinctPurchaseSources, getDistinctUnits } from "@/lib/db/sources";
 
 import { createSupply } from "@/app/actions/supplies";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewSupplyPage() {
-  const sources = await getDistinctPurchaseSources();
+  const [sources, units] = await Promise.all([
+    getDistinctPurchaseSources(),
+    getDistinctUnits(),
+  ]);
 
   return (
     <>
-      <TopBar title="添物品" />
+      <TopBar title="添物品" backHref="/supplies" />
       <form action={createSupply} className="space-y-4 px-4 py-4">
         <Card className="space-y-4">
           <FieldGroup label="名称 *">
             <Input name="name" required placeholder="如：通用配方土 5L" autoFocus />
           </FieldGroup>
-          <FieldGroup label="类别 *">
-            <Select name="category" required defaultValue="soil">
-              {supplyCategories.map((c) => (
-                <option key={c} value={c}>
-                  {SUPPLY_CATEGORY_META[c].emoji} {SUPPLY_CATEGORY_META[c].label}
-                </option>
-              ))}
-            </Select>
-          </FieldGroup>
+          <SupplyAmountFields unitOptions={units} />
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="购入日期">
               <Input type="date" name="purchasedAt" />
@@ -47,20 +41,6 @@ export default async function NewSupplyPage() {
               options={sources}
               placeholder="淘宝 / 花市 / 咸鱼 …"
             />
-          </FieldGroup>
-          <div className="grid grid-cols-3 gap-3">
-            <FieldGroup label="总数量">
-              <Input type="number" step="0.01" name="quantity" placeholder="5" />
-            </FieldGroup>
-            <FieldGroup label="在用">
-              <Input type="number" step="0.01" name="quantityInUse" placeholder="3" />
-            </FieldGroup>
-            <FieldGroup label="单位">
-              <Input name="unit" placeholder="袋 / L / 个" />
-            </FieldGroup>
-          </div>
-          <FieldGroup label="剩余 %" hint="对消耗类（土、肥、药）有意义；花盆这类填总数量即可">
-            <Input type="number" name="remainingPct" min={0} max={100} defaultValue={100} />
           </FieldGroup>
           <FieldGroup label="备注">
             <Textarea name="notes" rows={3} placeholder="用感、性价比、回购意愿…" />

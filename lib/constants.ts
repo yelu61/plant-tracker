@@ -24,3 +24,11 @@ export const SUPPLY_CATEGORY_META: Record<string, { label: string; emoji: string
   seed: { label: "种子/种球", emoji: "🌰" },
   other: { label: "其他", emoji: "📦" },
 };
+
+// 离散类目（盆、工具）：跟踪「总数 / 在用 / 闲置」
+// 耗品类目（土、肥、药、种子、其他）：跟踪「剩余 %」
+export const DISCRETE_SUPPLY_CATEGORIES = new Set(["pot", "tool"]);
+
+export function isDiscreteSupply(category: string): boolean {
+  return DISCRETE_SUPPLY_CATEGORIES.has(category);
+}
