@@ -128,6 +128,10 @@ export const plantsRelations = relations(plants, ({ one, many }) => ({
     fields: [plants.speciesId],
     references: [species.id],
   }),
+  coverPhoto: one(photos, {
+    fields: [plants.coverPhotoId],
+    references: [photos.id],
+  }),
   events: many(careEvents),
   photos: many(photos),
   notes: many(notes),

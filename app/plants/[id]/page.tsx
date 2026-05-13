@@ -169,7 +169,7 @@ export default async function PlantDetailPage({
               照片墙 ({plant.photos.length})
             </h2>
           </div>
-          <PhotoGrid photos={plant.photos} plantId={plant.id} />
+          <PhotoGrid photos={plant.photos} plantId={plant.id} coverPhotoId={plant.coverPhotoId} />
           <div className="mt-3">
             <PhotoUploader plantId={plant.id} />
           </div>

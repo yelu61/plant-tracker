@@ -85,6 +85,7 @@ export default async function PlantsPage({
           orderBy: (p, { desc }) => desc(p.takenAt),
           limit: 1,
         },
+        coverPhoto: true,
       },
       orderBy: desc(plants.createdAt),
     }),
@@ -189,7 +190,7 @@ export default async function PlantsPage({
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {rows.map((p) => {
               const lastWater = p.events[0];
-              const cover = p.photos[0];
+              const cover = p.coverPhoto ?? p.photos[0];
               const w = waterStatus(lastWater?.occurredAt, p.wateringIntervalDays);
               return (
                 <li key={p.id}>

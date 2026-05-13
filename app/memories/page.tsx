@@ -27,6 +27,7 @@ export default async function MemoriesPage() {
         orderBy: (p, { desc }) => desc(p.takenAt),
         limit: 1,
       },
+      coverPhoto: true,
     },
     orderBy: (p, { desc, asc }) => [desc(p.endedAt), asc(p.createdAt)],
   });
@@ -48,7 +49,7 @@ export default async function MemoriesPage() {
           <ul className="space-y-4">
             {rows.map((p) => {
               const meta = STATUS_BADGE[p.status] ?? STATUS_BADGE.archived;
-              const cover = p.photos[0];
+              const cover = p.coverPhoto ?? p.photos[0];
               const lifespanDays = lifespanIn(p.acquiredAt, p.endedAt);
               return (
                 <li key={p.id}>
