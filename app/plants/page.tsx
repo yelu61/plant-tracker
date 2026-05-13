@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { db } from "@/lib/db";
 import { plants, species as speciesTbl, type Plant } from "@/lib/db/schema";
-import { cn, daysSince, waterStatus } from "@/lib/utils";
+import { cn, daysSince, formatMoney, waterStatus } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +102,12 @@ export default async function PlantsPage({
   });
   const overview = computeOverview(allPlants);
 
+  const [plantSpend] = await db
+    .select({
+      total: sql<number>`coalesce(sum(${plants.acquiredPrice}), 0)`.mapWith(Number),
+    })
+    .from(plants);
+
   const enriched = rows.map((p) => {
     const lastWater = p.events[0];
     const w = waterStatus(lastWater?.occurredAt, p.wateringIntervalDays);
@@ -133,6 +139,7 @@ export default async function PlantsPage({
       <div className="space-y-3 px-4 py-4">
         <OverviewCard
           overview={overview}
+          plantSpend={plantSpend?.total ?? 0}
           status={status}
           location={locationFilter}
           water={waterFilter}
@@ -336,12 +343,14 @@ function urlWith(
 
 function OverviewCard({
   overview,
+  plantSpend,
   status,
   location,
   water,
   q,
 }: {
   overview: Overview;
+  plantSpend: number;
   status: string;
   location: string;
   water: string | null;
@@ -360,6 +369,11 @@ function OverviewCard({
           <Link href="/memories" className="text-stone-500 hover:underline">
             🪦 历史 {overview.lost + overview.archived}
           </Link>
+        ) : null}
+        {plantSpend > 0 ? (
+          <span className="text-stone-500">
+            💰 已投入 <span className="font-medium text-stone-700">{formatMoney(plantSpend)}</span>
+          </span>
         ) : null}
         {overview.overdue > 0 ? (
           <Link
