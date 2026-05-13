@@ -6,7 +6,7 @@ const timestamp = (name: string) =>
 
 export const species = sqliteTable("species", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  commonName: text("common_name").notNull(),
+  commonName: text("common_name").notNull().unique(),
   scientificName: text("scientific_name"),
   family: text("family"),
   category: text("category"),
