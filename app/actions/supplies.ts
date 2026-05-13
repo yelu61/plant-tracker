@@ -26,3 +26,22 @@ export async function deleteSupply(id: number) {
   await db.delete(supplies).where(eq(supplies.id, id));
   revalidatePath("/supplies");
 }
+
+export async function duplicateSupply(id: number) {
+  const src = await db.query.supplies.findFirst({ where: eq(supplies.id, id) });
+  if (!src) return;
+  const { id: _omit, createdAt: _c, ...rest } = src;
+  void _omit;
+  void _c;
+  const [row] = await db
+    .insert(supplies)
+    .values({
+      ...rest,
+      purchasedAt: new Date(),
+      remainingPct: 100,
+      quantityInUse: null,
+    })
+    .returning({ id: supplies.id });
+  revalidatePath("/supplies");
+  redirect(`/supplies/${row.id}/edit`);
+}

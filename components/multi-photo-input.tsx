@@ -70,7 +70,6 @@ export function MultiPhotoInput({ name = "photo" }: { name?: string }) {
             name={name}
             accept="image/*"
             multiple
-            capture="environment"
             className="hidden"
             onChange={(e) => {
               const fs = Array.from(e.target.files ?? []);

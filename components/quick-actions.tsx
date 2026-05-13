@@ -8,7 +8,16 @@ import { cn } from "@/lib/utils";
 
 import { quickLog } from "@/app/actions/events";
 
-const DEFAULT_ACTIONS = ["water", "fertilize", "observe", "prune"] as const;
+const DEFAULT_ACTIONS = [
+  "water",
+  "fertilize",
+  "prune",
+  "repot",
+  "sow",
+  "cutting",
+  "treat",
+  "observe",
+] as const;
 
 export function QuickActionRow({
   plantId,

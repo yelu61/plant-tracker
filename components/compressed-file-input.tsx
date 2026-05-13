@@ -78,7 +78,6 @@ export function CompressedFileInput({
           ref={inputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           className={cn("hidden", className)}
           onChange={handleChange}
           {...rest}

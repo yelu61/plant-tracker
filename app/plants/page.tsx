@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or } from "drizzle-orm";
+import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import { Plus, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,7 +14,12 @@ import { cn, waterStatus } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ q?: string; status?: string }>;
+type SearchParams = Promise<{
+  q?: string;
+  status?: string;
+  location?: string;
+  speciesId?: string;
+}>;
 
 export default async function PlantsPage({
   searchParams,
@@ -24,36 +29,37 @@ export default async function PlantsPage({
   const sp = await searchParams;
   const q = sp.q ?? "";
   const status = sp.status ?? "alive";
+  const locationFilter = sp.location ?? "";
+  const speciesIdFilter = sp.speciesId ?? "";
 
   const filters = [];
   if (status !== "all") {
     filters.push(eq(plants.status, status as "alive" | "dormant" | "lost" | "archived"));
   }
+  if (locationFilter) {
+    filters.push(eq(plants.location, locationFilter));
+  }
+  if (speciesIdFilter) {
+    const sid = Number(speciesIdFilter);
+    if (Number.isFinite(sid)) filters.push(eq(plants.speciesId, sid));
+  }
 
-  let plantIdsFromSpecies: number[] | null = null;
   if (q) {
     const pattern = `%${q}%`;
     const matchedSpecies = await db
       .select({ id: speciesTbl.id })
       .from(speciesTbl)
       .where(
-        or(
-          like(speciesTbl.commonName, pattern),
-          like(speciesTbl.scientificName, pattern),
-        ),
+        or(like(speciesTbl.commonName, pattern), like(speciesTbl.scientificName, pattern)),
       );
-    plantIdsFromSpecies = matchedSpecies.map((r) => r.id);
-  }
-
-  if (q) {
-    const pattern = `%${q}%`;
+    const ids = matchedSpecies.map((r) => r.id);
     const speciesFilters =
-      plantIdsFromSpecies && plantIdsFromSpecies.length > 0
+      ids.length > 0
         ? or(
             like(plants.name, pattern),
             like(plants.location, pattern),
             like(plants.notes, pattern),
-            ...plantIdsFromSpecies.map((sid) => eq(plants.speciesId, sid)),
+            ...ids.map((sid) => eq(plants.speciesId, sid)),
           )
         : or(
             like(plants.name, pattern),
@@ -65,29 +71,44 @@ export default async function PlantsPage({
 
   const where = filters.length > 0 ? and(...filters) : undefined;
 
-  const rows = await db.query.plants.findMany({
-    where,
-    with: {
-      species: true,
-      events: {
-        where: (e, { eq }) => eq(e.type, "water"),
-        orderBy: (e, { desc }) => desc(e.occurredAt),
-        limit: 1,
+  const [rows, distinctLocations, speciesList] = await Promise.all([
+    db.query.plants.findMany({
+      where,
+      with: {
+        species: true,
+        events: {
+          where: (e, { eq }) => eq(e.type, "water"),
+          orderBy: (e, { desc }) => desc(e.occurredAt),
+          limit: 1,
+        },
+        photos: {
+          orderBy: (p, { desc }) => desc(p.takenAt),
+          limit: 1,
+        },
       },
-      photos: {
-        orderBy: (p, { desc }) => desc(p.takenAt),
-        limit: 1,
-      },
-    },
-    orderBy: desc(plants.createdAt),
-  });
+      orderBy: desc(plants.createdAt),
+    }),
+    db
+      .selectDistinct({ location: plants.location })
+      .from(plants)
+      .where(sql`${plants.location} IS NOT NULL AND ${plants.location} != ''`),
+    db.query.species.findMany({
+      orderBy: (s, { asc }) => asc(s.commonName),
+      columns: { id: true, commonName: true },
+    }),
+  ]);
 
-  const hasFilter = !!q || status !== "alive";
+  const locations = distinctLocations
+    .map((r) => r.location)
+    .filter((v): v is string => !!v)
+    .sort();
+
+  const hasFilter = !!q || status !== "alive" || !!locationFilter || !!speciesIdFilter;
 
   return (
     <>
       <TopBar
-        title="植物"
+        title="花园"
         action={
           <Link href="/plants/new">
             <Button size="sm">
@@ -98,26 +119,46 @@ export default async function PlantsPage({
         }
       />
       <div className="space-y-3 px-4 py-4">
-        <form method="get" action="/plants" className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-            <Input
-              name="q"
-              defaultValue={q}
-              placeholder="搜：昵称 / 位置 / 物种 / 备注…"
-              className="pl-8"
-            />
+        <form method="get" action="/plants" className="space-y-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+              <Input
+                name="q"
+                defaultValue={q}
+                placeholder="搜：昵称 / 位置 / 物种 / 备注…"
+                className="pl-8"
+              />
+            </div>
+            <Button type="submit" variant="outline">
+              筛选
+            </Button>
           </div>
-          <Select name="status" defaultValue={status} className="w-24">
-            <option value="alive">在养</option>
-            <option value="dormant">休眠</option>
-            <option value="lost">已逝</option>
-            <option value="archived">归档</option>
-            <option value="all">全部</option>
-          </Select>
-          <Button type="submit" variant="outline">
-            筛选
-          </Button>
+          <div className="grid grid-cols-3 gap-2">
+            <Select name="location" defaultValue={locationFilter}>
+              <option value="">全部位置</option>
+              {locations.map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc}
+                </option>
+              ))}
+            </Select>
+            <Select name="speciesId" defaultValue={speciesIdFilter}>
+              <option value="">全部物种</option>
+              {speciesList.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.commonName}
+                </option>
+              ))}
+            </Select>
+            <Select name="status" defaultValue={status}>
+              <option value="alive">在养</option>
+              <option value="dormant">休眠</option>
+              <option value="lost">已逝</option>
+              <option value="archived">归档</option>
+              <option value="all">全部</option>
+            </Select>
+          </div>
         </form>
 
         {rows.length === 0 ? (
@@ -135,7 +176,7 @@ export default async function PlantsPage({
           ) : (
             <EmptyState
               icon="🌱"
-              title="还没有植物"
+              title="花园里还没有植物"
               description="把你正在养的第一株加进来吧。"
               action={
                 <Link href="/plants/new">

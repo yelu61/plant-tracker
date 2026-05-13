@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
+import { plants } from "@/lib/db/schema";
 
 import { updatePlant } from "@/app/actions/plants";
 
@@ -32,9 +34,19 @@ export default async function EditPlantPage({
   });
   if (!plant) notFound();
 
-  const speciesList = await db.query.species.findMany({
-    orderBy: (s, { asc }) => asc(s.commonName),
-  });
+  const [speciesList, distinctLocations, distinctSources] = await Promise.all([
+    db.query.species.findMany({ orderBy: (s, { asc }) => asc(s.commonName) }),
+    db
+      .selectDistinct({ v: plants.location })
+      .from(plants)
+      .where(sql`${plants.location} IS NOT NULL AND ${plants.location} != ''`),
+    db
+      .selectDistinct({ v: plants.acquiredFrom })
+      .from(plants)
+      .where(sql`${plants.acquiredFrom} IS NOT NULL AND ${plants.acquiredFrom} != ''`),
+  ]);
+  const locations = distinctLocations.map((r) => r.v).filter((v): v is string => !!v).sort();
+  const sources = distinctSources.map((r) => r.v).filter((v): v is string => !!v).sort();
 
   return (
     <>
@@ -56,7 +68,16 @@ export default async function EditPlantPage({
           />
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="位置">
-              <Input name="location" defaultValue={plant.location ?? ""} />
+              <Input
+                name="location"
+                defaultValue={plant.location ?? ""}
+                list="dl-locations"
+              />
+              <datalist id="dl-locations">
+                {locations.map((l) => (
+                  <option key={l} value={l} />
+                ))}
+              </datalist>
             </FieldGroup>
             <FieldGroup label="盆型">
               <Input name="potSize" defaultValue={plant.potSize ?? ""} />
@@ -82,7 +103,16 @@ export default async function EditPlantPage({
             </FieldGroup>
           </div>
           <FieldGroup label="购入途径">
-            <Input name="acquiredFrom" defaultValue={plant.acquiredFrom ?? ""} />
+            <Input
+              name="acquiredFrom"
+              defaultValue={plant.acquiredFrom ?? ""}
+              list="dl-sources"
+            />
+            <datalist id="dl-sources">
+              {sources.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
           </FieldGroup>
         </Card>
 

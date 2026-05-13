@@ -39,16 +39,19 @@ export default function NewSupplyPage() {
             <Input name="purchasedFrom" placeholder="淘宝 / 花市 …" />
           </FieldGroup>
           <div className="grid grid-cols-3 gap-3">
-            <FieldGroup label="数量">
-              <Input type="number" step="0.01" name="quantity" />
+            <FieldGroup label="总数量">
+              <Input type="number" step="0.01" name="quantity" placeholder="5" />
+            </FieldGroup>
+            <FieldGroup label="在用">
+              <Input type="number" step="0.01" name="quantityInUse" placeholder="3" />
             </FieldGroup>
             <FieldGroup label="单位">
               <Input name="unit" placeholder="袋 / L / 个" />
             </FieldGroup>
-            <FieldGroup label="剩余 %">
-              <Input type="number" name="remainingPct" min={0} max={100} defaultValue={100} />
-            </FieldGroup>
           </div>
+          <FieldGroup label="剩余 %" hint="对消耗类（土、肥、药）有意义；花盆这类填总数量即可">
+            <Input type="number" name="remainingPct" min={0} max={100} defaultValue={100} />
+          </FieldGroup>
           <FieldGroup label="备注">
             <Textarea name="notes" rows={3} placeholder="用感、性价比、回购意愿…" />
           </FieldGroup>

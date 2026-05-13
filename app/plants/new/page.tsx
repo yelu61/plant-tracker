@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
@@ -6,15 +7,26 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Textarea } from "@/components/ui/input";
 import { db } from "@/lib/db";
+import { plants } from "@/lib/db/schema";
 
 import { createPlant } from "@/app/actions/plants";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewPlantPage() {
-  const speciesList = await db.query.species.findMany({
-    orderBy: (s, { asc }) => asc(s.commonName),
-  });
+  const [speciesList, distinctLocations, distinctSources] = await Promise.all([
+    db.query.species.findMany({ orderBy: (s, { asc }) => asc(s.commonName) }),
+    db
+      .selectDistinct({ v: plants.location })
+      .from(plants)
+      .where(sql`${plants.location} IS NOT NULL AND ${plants.location} != ''`),
+    db
+      .selectDistinct({ v: plants.acquiredFrom })
+      .from(plants)
+      .where(sql`${plants.acquiredFrom} IS NOT NULL AND ${plants.acquiredFrom} != ''`),
+  ]);
+  const locations = distinctLocations.map((r) => r.v).filter((v): v is string => !!v).sort();
+  const sources = distinctSources.map((r) => r.v).filter((v): v is string => !!v).sort();
 
   return (
     <>
@@ -29,7 +41,12 @@ export default async function NewPlantPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <FieldGroup label="位置">
-              <Input name="location" placeholder="阳台 / 客厅 / …" />
+              <Input name="location" list="dl-locations" placeholder="阳台 / 客厅 / …" />
+              <datalist id="dl-locations">
+                {locations.map((l) => (
+                  <option key={l} value={l} />
+                ))}
+              </datalist>
             </FieldGroup>
             <FieldGroup label="盆型/口径">
               <Input name="potSize" placeholder="陶盆 12cm" />
@@ -52,7 +69,16 @@ export default async function NewPlantPage() {
             </FieldGroup>
           </div>
           <FieldGroup label="购入途径">
-            <Input name="acquiredFrom" placeholder="花市 / 拼多多 / 朋友送 …" />
+            <Input
+              name="acquiredFrom"
+              list="dl-sources"
+              placeholder="花市 / 拼多多 / 朋友送 …"
+            />
+            <datalist id="dl-sources">
+              {sources.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
           </FieldGroup>
         </Card>
 

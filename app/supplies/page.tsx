@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { Copy, Pencil } from "lucide-react";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
@@ -9,6 +10,8 @@ import { db } from "@/lib/db";
 import { supplies } from "@/lib/db/schema";
 import { SUPPLY_CATEGORY_META } from "@/lib/constants";
 import { formatDate, formatMoney } from "@/lib/utils";
+
+import { duplicateSupply } from "@/app/actions/supplies";
 
 export const dynamic = "force-dynamic";
 
@@ -69,11 +72,16 @@ export default async function SuppliesPage() {
           <ul className="space-y-2">
             {rows.map((s) => {
               const meta = SUPPLY_CATEGORY_META[s.category];
+              const hasUsage = s.quantity != null && s.quantityInUse != null;
+              const idle =
+                hasUsage && s.quantity != null && s.quantityInUse != null
+                  ? Math.max(0, s.quantity - s.quantityInUse)
+                  : null;
               return (
                 <li key={s.id}>
                   <Card>
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <CardTitle className="truncate">
                           {meta?.emoji} {s.name}
                         </CardTitle>
@@ -85,7 +93,13 @@ export default async function SuppliesPage() {
                       </div>
                       <div className="shrink-0 text-right">
                         <div className="text-sm font-semibold">{formatMoney(s.price)}</div>
-                        {s.quantity != null ? (
+                        {hasUsage ? (
+                          <div className="text-xs text-stone-500">
+                            在用 {s.quantityInUse} / 共 {s.quantity}
+                            {s.unit ?? ""}
+                            {idle != null && idle > 0 ? ` · 闲 ${idle}` : ""}
+                          </div>
+                        ) : s.quantity != null ? (
                           <div className="text-xs text-stone-500">
                             {s.quantity} {s.unit ?? ""}
                           </div>
@@ -103,6 +117,25 @@ export default async function SuppliesPage() {
                     {s.notes ? (
                       <p className="mt-2 text-xs text-stone-500">{s.notes}</p>
                     ) : null}
+                    <div className="mt-3 flex justify-end gap-2 border-t border-stone-100 pt-2 dark:border-stone-800">
+                      <form action={duplicateSupply.bind(null, s.id)}>
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          size="sm"
+                          aria-label="复制一份"
+                        >
+                          <Copy className="h-3 w-3" />
+                          复购
+                        </Button>
+                      </form>
+                      <Link href={`/supplies/${s.id}/edit`}>
+                        <Button variant="ghost" size="sm">
+                          <Pencil className="h-3 w-3" />
+                          编辑
+                        </Button>
+                      </Link>
+                    </div>
                   </Card>
                 </li>
               );

@@ -65,6 +65,7 @@ export const supplySchema = z.object({
   purchasedFrom: z.string().max(80).optional().or(z.literal("")).transform((v) => v || undefined),
   price: optionalNumber,
   quantity: optionalNumber,
+  quantityInUse: optionalNumber,
   unit: z.string().max(20).optional().or(z.literal("")).transform((v) => v || undefined),
   remainingPct: z.coerce.number().int().min(0).max(100).default(100),
   notes: z.string().max(2000).optional().or(z.literal("")).transform((v) => v || undefined),

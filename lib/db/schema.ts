@@ -50,6 +50,8 @@ export const careEventTypes = [
   "observe",
   "rotate",
   "move",
+  "sow",
+  "cutting",
   "growth",
 ] as const;
 export type CareEventType = (typeof careEventTypes)[number];
@@ -85,6 +87,7 @@ export const supplies = sqliteTable("supplies", {
   purchasedFrom: text("purchased_from"),
   price: real("price"),
   quantity: real("quantity"),
+  quantityInUse: real("quantity_in_use"),
   unit: text("unit"),
   remainingPct: integer("remaining_pct").default(100),
   notes: text("notes"),

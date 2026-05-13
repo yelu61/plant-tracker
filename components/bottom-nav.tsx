@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/", label: "首页", icon: Home },
-  { href: "/plants", label: "植物", icon: Leaf },
+  { href: "/plants", label: "花园", icon: Leaf },
   { href: "/quick-log", label: "打卡", icon: Plus, big: true },
   { href: "/supplies", label: "物品", icon: Package },
   { href: "/notes", label: "笔记", icon: Notebook },
