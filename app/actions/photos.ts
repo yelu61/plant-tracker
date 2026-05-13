@@ -12,11 +12,13 @@ export async function uploadPhoto(plantId: number, formData: FormData) {
   const caption = (formData.get("caption") as string | null) ?? null;
   if (!file || file.size === 0) return;
   const { url } = await saveFile(file);
+  const takenAtRaw = formData.get("photoTakenAt") as string | null;
+  const takenAt = takenAtRaw ? new Date(takenAtRaw) : new Date();
   await db.insert(photos).values({
     plantId,
     url,
     caption,
-    takenAt: new Date(),
+    takenAt: Number.isNaN(takenAt.getTime()) ? new Date() : takenAt,
   });
   revalidatePath(`/plants/${plantId}`);
 }

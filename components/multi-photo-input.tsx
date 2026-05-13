@@ -3,11 +3,14 @@
 import { X } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { extractPhotoDate } from "@/lib/exif";
 import { compressImage } from "@/lib/image";
+
+type Item = { file: File; url: string; takenAt: Date | null };
 
 export function MultiPhotoInput({ name = "photo" }: { name?: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [items, setItems] = useState<{ file: File; url: string }[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
 
@@ -15,17 +18,24 @@ export function MultiPhotoInput({ name = "photo" }: { name?: string }) {
     if (!files.length) return;
     setBusy(true);
     setInfo(`处理 ${files.length} 张…`);
-    const compressed = await Promise.all(files.map((f) => compressImage(f)));
-    const next = [
-      ...items,
-      ...compressed.map((f) => ({ file: f, url: URL.createObjectURL(f) })),
-    ];
+    const processed: Item[] = await Promise.all(
+      files.map(async (f) => {
+        const [takenAt, compressed] = await Promise.all([
+          extractPhotoDate(f),
+          compressImage(f),
+        ]);
+        return { file: compressed, url: URL.createObjectURL(compressed), takenAt };
+      }),
+    );
+    const next = [...items, ...processed];
     syncInput(next.map((x) => x.file));
     setItems(next);
     const origTotal = files.reduce((s, f) => s + f.size, 0);
-    const newTotal = compressed.reduce((s, f) => s + f.size, 0);
+    const newTotal = processed.reduce((s, x) => s + x.file.size, 0);
+    const dated = processed.filter((x) => x.takenAt).length;
     setInfo(
-      `共 ${next.length} 张 · 新增 ${formatSize(origTotal)} → ${formatSize(newTotal)}`,
+      `共 ${next.length} 张 · 新增 ${formatSize(origTotal)} → ${formatSize(newTotal)}` +
+        (dated > 0 ? ` · 读到 ${dated} 张拍摄日期` : ""),
     );
     setBusy(false);
   }
@@ -45,8 +55,11 @@ export function MultiPhotoInput({ name = "photo" }: { name?: string }) {
     inputRef.current.files = dt.files;
   }
 
+  const takenAtList = JSON.stringify(items.map((x) => (x.takenAt ? x.takenAt.toISOString() : null)));
+
   return (
     <div className="space-y-2">
+      <input type="hidden" name="photoTakenAtList" value={takenAtList} />
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {items.map((it, i) => (
           <div key={it.url} className="group relative aspect-square overflow-hidden rounded-lg">
@@ -60,6 +73,11 @@ export function MultiPhotoInput({ name = "photo" }: { name?: string }) {
             >
               <X className="h-3 w-3" />
             </button>
+            {it.takenAt ? (
+              <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-1 py-0.5 text-[9px] text-white">
+                {it.takenAt.toLocaleDateString("zh-CN")}
+              </span>
+            ) : null}
           </div>
         ))}
         <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 text-xs text-stone-500 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900">

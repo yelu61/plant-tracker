@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 
+import { extractPhotoDate } from "@/lib/exif";
 import { compressImage } from "@/lib/image";
 import { cn } from "@/lib/utils";
 
@@ -17,35 +18,45 @@ export function CompressedFileInput({
   className,
   previewClassName,
   onFile,
+  name = "photo",
   ...rest
 }: CompressedFileInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [takenAt, setTakenAt] = useState<string>("");
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) {
       setPreviewUrl(null);
       setInfo(null);
+      setTakenAt("");
       onFile?.(null);
       return;
     }
     setBusy(true);
-    setInfo(`处理中…`);
+    setInfo("处理中…");
     try {
-      const compressed = await compressImage(f);
+      const [origDate, compressed] = await Promise.all([
+        extractPhotoDate(f),
+        compressImage(f),
+      ]);
       if (inputRef.current) {
         const dt = new DataTransfer();
         dt.items.add(compressed);
         inputRef.current.files = dt.files;
       }
       setPreviewUrl(URL.createObjectURL(compressed));
+      setTakenAt(origDate ? origDate.toISOString() : "");
+      const dateNote = origDate
+        ? ` · 拍摄于 ${origDate.toLocaleDateString("zh-CN")}`
+        : "";
       setInfo(
-        compressed === f
+        (compressed === f
           ? formatSize(f.size)
-          : `${formatSize(f.size)} → ${formatSize(compressed.size)}`,
+          : `${formatSize(f.size)} → ${formatSize(compressed.size)}`) + dateNote,
       );
       onFile?.(compressed);
     } catch (err) {
@@ -60,6 +71,7 @@ export function CompressedFileInput({
 
   return (
     <div className="space-y-2">
+      <input type="hidden" name="photoTakenAt" value={takenAt} />
       <label
         className={cn(
           "flex h-28 cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 text-sm text-stone-500 transition hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900",
@@ -72,11 +84,12 @@ export function CompressedFileInput({
         ) : busy ? (
           <span>压缩中…</span>
         ) : (
-          <span>📷 选张照片（自动压缩）</span>
+          <span>📷 选张照片（自动压缩 + 读取拍摄日期）</span>
         )}
         <input
           ref={inputRef}
           type="file"
+          name={name}
           accept="image/*"
           className={cn("hidden", className)}
           onChange={handleChange}

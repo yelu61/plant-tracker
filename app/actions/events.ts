@@ -43,10 +43,23 @@ export async function logGrowth(plantId: number, formData: FormData) {
   const photoFiles = formData
     .getAll("photo")
     .filter((v): v is File => v instanceof File && v.size > 0);
+  const takenAtListRaw = formData.get("photoTakenAtList") as string | null;
+  let takenAtList: (string | null)[] = [];
+  try {
+    const parsed = takenAtListRaw ? JSON.parse(takenAtListRaw) : [];
+    if (Array.isArray(parsed)) takenAtList = parsed;
+  } catch {
+    takenAtList = [];
+  }
+
   const photoUrls: string[] = [];
-  for (const f of photoFiles) {
-    const saved = await saveFile(f);
+  const photoDates: Date[] = [];
+  for (let i = 0; i < photoFiles.length; i++) {
+    const saved = await saveFile(photoFiles[i]);
     photoUrls.push(saved.url);
+    const raw = takenAtList[i];
+    const d = raw ? new Date(raw) : occurredAt;
+    photoDates.push(Number.isNaN(d.getTime()) ? occurredAt : d);
   }
 
   const [event] = await db
@@ -62,12 +75,12 @@ export async function logGrowth(plantId: number, formData: FormData) {
 
   if (photoUrls.length > 0) {
     await db.insert(photos).values(
-      photoUrls.map((url) => ({
+      photoUrls.map((url, i) => ({
         plantId,
         eventId: event.id,
         url,
         caption: detail,
-        takenAt: occurredAt,
+        takenAt: photoDates[i],
       })),
     );
   }
