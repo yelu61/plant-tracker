@@ -1,3 +1,4 @@
+import { Save } from "lucide-react";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
@@ -70,6 +71,7 @@ export default async function NewSpeciesPage({
             </Button>
           </Link>
           <Button type="submit" className="flex-1">
+            <Save className="h-4 w-4" />
             保存
           </Button>
         </div>

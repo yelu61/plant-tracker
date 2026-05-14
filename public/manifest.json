@@ -1,6 +1,6 @@
 {
-  "name": "植语 · Plant Tracker",
-  "short_name": "植语",
+  "name": "PlantLog",
+  "short_name": "PlantLog",
   "description": "记录养花草绿植：浇水、施肥、开支、经验。",
   "start_url": "/",
   "display": "standalone",

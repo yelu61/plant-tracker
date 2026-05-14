@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
@@ -20,7 +21,10 @@ export default async function SpeciesPage() {
         title="物种"
         action={
           <Link href="/species/new">
-            <Button size="sm">+ 新增</Button>
+            <Button size="sm">
+              <Plus className="h-3.5 w-3.5" />
+              新增
+            </Button>
           </Link>
         }
       />

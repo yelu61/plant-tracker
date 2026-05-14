@@ -1,3 +1,4 @@
+import { PenLine } from "lucide-react";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
@@ -21,7 +22,10 @@ export default async function NotesPage() {
         title="经验笔记"
         action={
           <Link href="/notes/new">
-            <Button size="sm">+ 写笔记</Button>
+            <Button size="sm">
+              <PenLine className="h-3.5 w-3.5" />
+              写笔记
+            </Button>
           </Link>
         }
       />

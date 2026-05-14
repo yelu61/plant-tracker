@@ -116,7 +116,7 @@ export default async function SettingsPage() {
         <Card>
           <CardTitle>关于</CardTitle>
           <CardDescription className="mt-1">
-            植语 · Plant Tracker · Next 15 + Drizzle + Turso · 单用户 PWA
+            PlantLog · Next 15 + Drizzle + Turso · 单用户 PWA
           </CardDescription>
         </Card>
       </div>

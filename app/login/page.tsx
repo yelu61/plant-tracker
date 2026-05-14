@@ -19,7 +19,7 @@ export default async function LoginPage({
       <Card className="space-y-4">
         <div className="flex items-center gap-2">
           <Sprout className="h-6 w-6 text-leaf-600" />
-          <h1 className="text-xl font-semibold">植语</h1>
+          <h1 className="text-xl font-semibold">PlantLog</h1>
         </div>
         {noPassword ? (
           <p className="text-sm text-amber-700">

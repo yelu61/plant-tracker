@@ -1,3 +1,4 @@
+import { Save } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -117,6 +118,7 @@ export default async function EditPlantPage({
             </Button>
           </Link>
           <Button type="submit" className="flex-1">
+            <Save className="h-4 w-4" />
             保存
           </Button>
         </div>

@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 import { QuickActionRow } from "@/components/quick-actions";
@@ -51,9 +52,10 @@ export default async function QuickLogPage() {
                       </div>
                       <Link
                         href={`/plants/${p.id}`}
-                        className="text-xs font-medium text-leaf-700"
+                        className="inline-flex items-center gap-0.5 text-xs font-medium text-leaf-700"
                       >
-                        详情 →
+                        详情
+                        <ArrowRight className="h-3 w-3" />
                       </Link>
                     </div>
                     <QuickActionRow plantId={p.id} />

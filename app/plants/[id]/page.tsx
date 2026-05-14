@@ -1,5 +1,5 @@
 import { desc } from "drizzle-orm";
-import { Pencil, TrendingUp } from "lucide-react";
+import { Pencil, Plus, Trash2, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -187,8 +187,8 @@ export default async function PlantDetailPage({
             <div className="pt-4">
               <DeleteButton
                 action={deletePlant.bind(null, plant.id)}
-                label="彻底删除这株（事件 + 照片）"
-                confirmText={`确认彻底删除「${plant.name}」？所有记录无法找回。如果只是养死了或暂时不养，建议在编辑里改"状态"即可。`}
+                label="删除植物"
+                confirmText={`确认删除「${plant.name}」？所有记录无法找回。如果只是养死了或暂时不养，建议在编辑里改"状态"即可。`}
               />
             </div>
           </>
@@ -260,7 +260,8 @@ export default async function PlantDetailPage({
                 </h2>
                 <Link href={`/plants/${plant.id}/growth/new`}>
                   <Button size="sm" variant="outline">
-                    + 记成长
+                    <Plus className="h-3.5 w-3.5" />
+                    记成长
                   </Button>
                 </Link>
               </div>
@@ -377,9 +378,10 @@ export default async function PlantDetailPage({
                       <form action={deleteEvent.bind(null, e.id, plant.id)}>
                         <button
                           type="submit"
-                          className="text-xs text-stone-400 hover:text-rose-600"
+                          aria-label="删除"
+                          className="inline-flex items-center gap-0.5 text-xs text-stone-400 hover:text-rose-600"
                         >
-                          删
+                          <Trash2 className="h-3 w-3" />
                         </button>
                       </form>
                     </li>

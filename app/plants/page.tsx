@@ -1,5 +1,5 @@
 import { and, desc, eq, isNull, like, or, sql } from "drizzle-orm";
-import { Plus, Search } from "lucide-react";
+import { BookOpen, Plus, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -407,8 +407,9 @@ function OverviewCard({
           </Link>
         ) : null}
         {overview.species > 0 ? (
-          <span className="text-stone-500">
-            🧬 {overview.species} 个物种
+          <span className="inline-flex items-center gap-1 text-stone-500">
+            <BookOpen className="h-3.5 w-3.5" />
+            {overview.species} 个物种
           </span>
         ) : null}
         {plantSpend > 0 ? (

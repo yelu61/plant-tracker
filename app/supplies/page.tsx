@@ -1,8 +1,9 @@
 import { sql } from "drizzle-orm";
-import { Copy, Pencil } from "lucide-react";
+import { Copy, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
+import { DeleteButton } from "@/components/delete-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/badge";
@@ -11,7 +12,7 @@ import { supplies, supplyCategories, type Supply } from "@/lib/db/schema";
 import { isDiscreteSupply, SUPPLY_CATEGORY_META } from "@/lib/constants";
 import { cn, formatDate, formatMoney } from "@/lib/utils";
 
-import { duplicateSupply } from "@/app/actions/supplies";
+import { deleteSupply, duplicateSupply } from "@/app/actions/supplies";
 
 export const dynamic = "force-dynamic";
 
@@ -334,6 +335,12 @@ function SupplyCard({ supply }: { supply: Supply }) {
             编辑
           </Button>
         </Link>
+        <DeleteButton
+          action={deleteSupply.bind(null, supply.id)}
+          label="删除"
+          variant="ghost"
+          confirmText={`确认删除「${supply.name}」？`}
+        />
       </div>
     </Card>
   );

@@ -25,6 +25,7 @@ export async function updateSupply(id: number, formData: FormData) {
 export async function deleteSupply(id: number) {
   await db.delete(supplies).where(eq(supplies.id, id));
   revalidatePath("/supplies");
+  redirect("/supplies");
 }
 
 export async function duplicateSupply(id: number) {

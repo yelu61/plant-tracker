@@ -7,13 +7,13 @@ import { OfflineIndicator } from "@/components/offline-indicator";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "植语 · Plant Tracker",
+  title: "PlantLog",
   description: "记录你养的每一株植物：浇水、施肥、开支、经验。",
-  applicationName: "Plant Tracker",
+  applicationName: "PlantLog",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "植语",
+    title: "PlantLog",
   },
   manifest: "/manifest.json",
   icons: {
