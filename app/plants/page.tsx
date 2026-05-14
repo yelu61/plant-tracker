@@ -1,4 +1,4 @@
-import { and, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, like, or, sql } from "drizzle-orm";
 import { Plus, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,6 +28,7 @@ type SearchParams = Promise<{
   status?: string;
   location?: string;
   water?: string;
+  speciesId?: string;
 }>;
 
 export default async function PlantsPage({
@@ -40,10 +41,16 @@ export default async function PlantsPage({
   const status = (STATUS_OPTIONS.find((s) => s.key === sp.status)?.key ?? "alive") as StatusKey;
   const locationFilter = sp.location ?? "";
   const waterFilter = sp.water === "overdue" || sp.water === "fresh" ? sp.water : null;
+  const speciesIdFilter = sp.speciesId ?? "";
 
   const filters = [];
   if (status !== "all") filters.push(eq(plants.status, status));
   if (locationFilter) filters.push(eq(plants.location, locationFilter));
+  if (speciesIdFilter === "none") {
+    filters.push(isNull(plants.speciesId));
+  } else if (speciesIdFilter) {
+    filters.push(eq(plants.speciesId, Number(speciesIdFilter)));
+  }
 
   if (q) {
     const pattern = `%${q}%`;
@@ -122,7 +129,7 @@ export default async function PlantsPage({
     : enriched;
 
   const hasFilter =
-    !!q || status !== "alive" || !!locationFilter || !!waterFilter;
+    !!q || status !== "alive" || !!locationFilter || !!waterFilter || !!speciesIdFilter;
 
   return (
     <>
@@ -145,6 +152,7 @@ export default async function PlantsPage({
           location={locationFilter}
           water={waterFilter}
           q={q}
+          speciesId={speciesIdFilter}
         />
 
         <form method="get" action="/plants">
@@ -159,10 +167,11 @@ export default async function PlantsPage({
             {status !== "alive" ? <input type="hidden" name="status" value={status} /> : null}
             {locationFilter ? <input type="hidden" name="location" value={locationFilter} /> : null}
             {waterFilter ? <input type="hidden" name="water" value={waterFilter} /> : null}
+            {speciesIdFilter ? <input type="hidden" name="speciesId" value={speciesIdFilter} /> : null}
           </div>
         </form>
 
-        <StatusChips active={status} location={locationFilter} water={waterFilter} q={q} />
+        <StatusChips active={status} location={locationFilter} water={waterFilter} q={q} speciesId={speciesIdFilter} />
 
         {overview.locations.length > 0 ? (
           <LocationChips
@@ -171,6 +180,7 @@ export default async function PlantsPage({
             status={status}
             water={waterFilter}
             q={q}
+            speciesId={speciesIdFilter}
           />
         ) : null}
 
@@ -179,6 +189,7 @@ export default async function PlantsPage({
           status={status}
           location={locationFilter}
           q={q}
+          speciesId={speciesIdFilter}
         />
 
         {filteredByWater.length === 0 ? (
@@ -276,6 +287,7 @@ type LocationRow = {
 type SpeciesRow = {
   name: string;
   total: number;
+  speciesId: number | null;
 };
 
 type Overview = {
@@ -315,7 +327,7 @@ function computeOverview(
     if (isOverdue) out.overdue += 1;
     if (p.speciesId != null) speciesSet.add(p.speciesId);
     const spName = p.species?.commonName ?? "未分类";
-    const spRow = speciesMap.get(spName) ?? { name: spName, total: 0 };
+    const spRow = speciesMap.get(spName) ?? { name: spName, total: 0, speciesId: p.speciesId ?? null };
     spRow.total += 1;
     speciesMap.set(spName, spRow);
     if (p.location && p.status === "alive") {
@@ -336,23 +348,26 @@ function preserveParams({
   status,
   location,
   water,
+  speciesId,
 }: {
   q?: string;
   status?: string;
   location?: string;
   water?: string | null;
+  speciesId?: string;
 }) {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
   if (status && status !== "alive") params.set("status", status);
   if (location) params.set("location", location);
   if (water) params.set("water", water);
+  if (speciesId) params.set("speciesId", speciesId);
   return params;
 }
 
 function urlWith(
-  base: { q?: string; status?: string; location?: string; water?: string | null },
-  overrides: Partial<{ status: string; location: string; water: string }>,
+  base: { q?: string; status?: string; location?: string; water?: string | null; speciesId?: string },
+  overrides: Partial<{ status: string; location: string; water: string; speciesId: string }>,
 ) {
   const merged = { ...base, ...overrides };
   const params = preserveParams(merged);
@@ -367,6 +382,7 @@ function OverviewCard({
   location,
   water,
   q,
+  speciesId,
 }: {
   overview: Overview;
   plantSpend: number;
@@ -374,6 +390,7 @@ function OverviewCard({
   location: string;
   water: string | null;
   q: string;
+  speciesId: string;
 }) {
   return (
     <Card>
@@ -401,7 +418,7 @@ function OverviewCard({
         ) : null}
         {overview.overdue > 0 ? (
           <Link
-            href={urlWith({ q, status, location, water }, { water: "overdue" })}
+            href={urlWith({ q, status, location, water, speciesId }, { water: "overdue" })}
             scroll={false}
             className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 hover:bg-amber-200"
           >
@@ -415,14 +432,29 @@ function OverviewCard({
       {overview.speciesBreakdown.length > 0 ? (
         <div className="-mx-4 mt-3 overflow-x-auto px-4">
           <div className="flex gap-2 whitespace-nowrap pb-1">
-            {overview.speciesBreakdown.map((s) => (
-              <span
-                key={s.name}
-                className="inline-flex shrink-0 items-center rounded-full border border-stone-200 bg-stone-50 px-2.5 py-0.5 text-[11px] text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300"
-              >
-                {s.name} <span className="ml-1 text-stone-400">{s.total}</span>
-              </span>
-            ))}
+            {overview.speciesBreakdown.map((s) => {
+              const sid = s.speciesId != null ? String(s.speciesId) : "none";
+              const active = speciesId === sid;
+              return (
+                <Link
+                  key={s.name}
+                  href={
+                    active
+                      ? urlWith({ q, status, location, water, speciesId }, { speciesId: "" })
+                      : urlWith({ q, status, location, water, speciesId }, { speciesId: sid })
+                  }
+                  scroll={false}
+                  className={cn(
+                    "inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-[11px] transition",
+                    active
+                      ? "border-leaf-600 bg-leaf-600 text-white"
+                      : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300",
+                  )}
+                >
+                  {s.name} <span className={cn("ml-1", active ? "text-leaf-100" : "text-stone-400")}>{s.total}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       ) : null}
@@ -435,11 +467,13 @@ function StatusChips({
   location,
   water,
   q,
+  speciesId,
 }: {
   active: StatusKey;
   location: string;
   water: string | null;
   q: string;
+  speciesId: string;
 }) {
   return (
     <nav className="-mx-4 overflow-x-auto px-4">
@@ -447,7 +481,7 @@ function StatusChips({
         {STATUS_OPTIONS.map((s) => (
           <Chip
             key={s.key}
-            href={urlWith({ q, location, water }, { status: s.key })}
+            href={urlWith({ q, location, water, speciesId }, { status: s.key })}
             active={active === s.key}
           >
             {s.emoji} {s.label}
@@ -464,23 +498,25 @@ function LocationChips({
   status,
   water,
   q,
+  speciesId,
 }: {
   active: string;
   locations: string[];
   status: string;
   water: string | null;
   q: string;
+  speciesId: string;
 }) {
   return (
     <nav className="-mx-4 overflow-x-auto px-4">
       <div className="flex gap-2 whitespace-nowrap pb-1">
-        <Chip href={urlWith({ q, status, water }, { location: "" })} active={!active}>
+        <Chip href={urlWith({ q, status, water, speciesId }, { location: "" })} active={!active}>
           📍 全部位置
         </Chip>
         {locations.map((loc) => (
           <Chip
             key={loc}
-            href={urlWith({ q, status, water }, { location: loc })}
+            href={urlWith({ q, status, water, speciesId }, { location: loc })}
             active={active === loc}
           >
             {loc}
@@ -496,31 +532,33 @@ function WaterChips({
   status,
   location,
   q,
+  speciesId,
 }: {
   active: string | null;
   status: string;
   location: string;
   q: string;
+  speciesId: string;
 }) {
   return (
     <div className="flex gap-2 whitespace-nowrap">
       <Chip
         size="sm"
-        href={urlWith({ q, status, location }, { water: "" })}
+        href={urlWith({ q, status, location, speciesId }, { water: "" })}
         active={!active}
       >
         浇水：全部
       </Chip>
       <Chip
         size="sm"
-        href={urlWith({ q, status, location }, { water: "overdue" })}
+        href={urlWith({ q, status, location, speciesId }, { water: "overdue" })}
         active={active === "overdue"}
       >
         💧 需浇
       </Chip>
       <Chip
         size="sm"
-        href={urlWith({ q, status, location }, { water: "fresh" })}
+        href={urlWith({ q, status, location, speciesId }, { water: "fresh" })}
         active={active === "fresh"}
       >
         ✓ 不缺水
