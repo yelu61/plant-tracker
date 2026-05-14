@@ -35,7 +35,7 @@ export function DateInput({
 
   const currentYear = new Date().getFullYear();
   const years = useMemo(
-    () => Array.from({ length: currentYear - 1999 + 1 }, (_, i) => String(2000 + i)),
+    () => Array.from({ length: currentYear - 2023 + 1 }, (_, i) => String(2024 + i)),
     [currentYear]
   );
   const months = useMemo(
