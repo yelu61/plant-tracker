@@ -1,18 +1,26 @@
-import { PenLine } from "lucide-react";
+import { Pencil, PenLine } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
+import { DeleteButton } from "@/components/delete-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/badge";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/utils";
 
+import { deleteNote } from "@/app/actions/notes";
+
 export const dynamic = "force-dynamic";
 
 export default async function NotesPage() {
   const rows = await db.query.notes.findMany({
-    with: { plant: { columns: { id: true, name: true } }, species: { columns: { id: true, commonName: true } } },
+    with: {
+      plant: { columns: { id: true, name: true } },
+      species: { columns: { id: true, commonName: true } },
+      photos: { orderBy: (p, { asc }) => asc(p.createdAt) },
+    },
     orderBy: (n, { desc }) => desc(n.createdAt),
   });
 
@@ -55,6 +63,27 @@ export default async function NotesPage() {
                   <p className="mt-2 whitespace-pre-wrap text-sm text-stone-700 dark:text-stone-300">
                     {n.content}
                   </p>
+                  {n.photos.length > 0 ? (
+                    <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {n.photos.map((p) => (
+                        <Link
+                          key={p.id}
+                          href={p.url}
+                          target="_blank"
+                          className="block overflow-hidden rounded-lg"
+                        >
+                          <Image
+                            src={p.url}
+                            alt={p.caption ?? ""}
+                            width={300}
+                            height={300}
+                            className="aspect-square object-cover"
+                            unoptimized
+                          />
+                        </Link>
+                      ))}
+                    </div>
+                  ) : null}
                   {n.tags && n.tags.length > 0 ? (
                     <div className="mt-3 flex flex-wrap gap-1">
                       {n.tags.map((t) => (
@@ -67,6 +96,20 @@ export default async function NotesPage() {
                       ))}
                     </div>
                   ) : null}
+                  <div className="mt-3 flex justify-end gap-2 border-t border-stone-100 pt-2 dark:border-stone-800">
+                    <Link href={`/notes/${n.id}/edit`}>
+                      <Button variant="ghost" size="sm">
+                        <Pencil className="h-3 w-3" />
+                        编辑
+                      </Button>
+                    </Link>
+                    <DeleteButton
+                      action={deleteNote.bind(null, n.id)}
+                      label="删除"
+                      variant="ghost"
+                      confirmText="确认删除这条笔记？此操作不可撤销。"
+                    />
+                  </div>
                 </Card>
               </li>
             ))}

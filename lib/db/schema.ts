@@ -94,21 +94,6 @@ export const supplies = sqliteTable("supplies", {
   createdAt: timestamp("created_at"),
 });
 
-export const photos = sqliteTable("photos", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  plantId: integer("plant_id").references(() => plants.id, {
-    onDelete: "cascade",
-  }),
-  eventId: integer("event_id").references(() => careEvents.id, {
-    onDelete: "set null",
-  }),
-  url: text("url").notNull(),
-  thumbnailUrl: text("thumbnail_url"),
-  caption: text("caption"),
-  takenAt: integer("taken_at", { mode: "timestamp" }),
-  createdAt: timestamp("created_at"),
-});
-
 export const notes = sqliteTable("notes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title"),
@@ -120,6 +105,24 @@ export const notes = sqliteTable("notes", {
   speciesId: integer("species_id").references(() => species.id, {
     onDelete: "set null",
   }),
+  createdAt: timestamp("created_at"),
+});
+
+export const photos = sqliteTable("photos", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  plantId: integer("plant_id").references(() => plants.id, {
+    onDelete: "cascade",
+  }),
+  eventId: integer("event_id").references(() => careEvents.id, {
+    onDelete: "set null",
+  }),
+  noteId: integer("note_id").references(() => notes.id, {
+    onDelete: "cascade",
+  }),
+  url: text("url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  caption: text("caption"),
+  takenAt: integer("taken_at", { mode: "timestamp" }),
   createdAt: timestamp("created_at"),
 });
 
@@ -156,14 +159,16 @@ export const photosRelations = relations(photos, ({ one }) => ({
     fields: [photos.eventId],
     references: [careEvents.id],
   }),
+  note: one(notes, { fields: [photos.noteId], references: [notes.id] }),
 }));
 
-export const notesRelations = relations(notes, ({ one }) => ({
+export const notesRelations = relations(notes, ({ one, many }) => ({
   plant: one(plants, { fields: [notes.plantId], references: [plants.id] }),
   species: one(species, {
     fields: [notes.speciesId],
     references: [species.id],
   }),
+  photos: many(photos),
 }));
 
 export type Plant = typeof plants.$inferSelect;

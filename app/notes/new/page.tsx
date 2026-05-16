@@ -2,6 +2,7 @@ import { Save } from "lucide-react";
 import Link from "next/link";
 
 import { TopBar } from "@/components/bottom-nav";
+import { MultiPhotoInput } from "@/components/multi-photo-input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FieldGroup, Input, Select, Textarea } from "@/components/ui/input";
@@ -20,13 +21,20 @@ export default async function NewNotePage() {
   return (
     <>
       <TopBar title="写笔记" />
-      <form action={createNote} className="space-y-4 px-4 py-4">
+      <form
+        action={createNote}
+        encType="multipart/form-data"
+        className="space-y-4 px-4 py-4"
+      >
         <Card className="space-y-4">
           <FieldGroup label="标题">
             <Input name="title" placeholder="比如：夏季多肉控水心得" autoFocus />
           </FieldGroup>
           <FieldGroup label="内容 *">
             <Textarea name="content" required rows={8} placeholder="记下来…" />
+          </FieldGroup>
+          <FieldGroup label="照片" hint="可拍照或从相册选，自动压缩">
+            <MultiPhotoInput />
           </FieldGroup>
           <FieldGroup label="标签" hint="用空格或逗号分隔">
             <Input name="tags" placeholder="夏季 控水 多肉" />
